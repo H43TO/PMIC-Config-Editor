@@ -1,0 +1,3734 @@
+{
+  "ver": "1.0",
+  "model": "RTQ5132",
+  "regs": [
+    {
+      "addr": "0x00",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x01",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x02",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x03",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x04",
+      "name": "Global_ERR_Log",
+      "full": "Global Error Log",
+      "cat": "Error",
+      "default": "0x00",
+      "type": "ROE",
+      "desc": "Global Error Log Register",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "COUNT",
+          "desc": "Global Error Count Since Last Erase Operation: 0 = No Error or Only 1 Error since last Erase Operation, 1 = > 1 Error Count since last Erase Operation",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "BUCK_OV_OR_UV",
+          "desc": "Global Error Log History for Buck Regulator Output Overvoltage or Undervoltage: 0 = No Error Occurred, 1 = Error Occurred",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "5",
+          "name": "VIN_BULK_OV",
+          "desc": "Global Error Log History for VIN_BULK Overvoltage: 0 = No Error Occurred, 1 = Error Occurred",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "4",
+          "name": "OTP",
+          "desc": "Global Error Log History for Critical Temperature: 0 = No Error Occurred, 1 = Error Occurred",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ],
+      "special": "GlobalErrLog"
+    },
+    {
+      "addr": "0x05",
+      "name": "PMIC_Fault_ERR_Log",
+      "full": "PMIC Fault Error Log",
+      "cat": "Error",
+      "default": "0x00",
+      "type": "ROE",
+      "desc": "PG-On-Reset ERR Log",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "6",
+          "name": "A_NO_PG",
+          "desc": "SWA Condition from Previous Power Cycle: 0 = Normal Power-On, 1 = SWA Power Not Good",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "5",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "4",
+          "name": "B_NO_PG",
+          "desc": "SWB Condition from Previous Power Cycle: 0 = Normal Power-On, 1 = SWB Power Not Good",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3",
+          "name": "C_NO_PG",
+          "desc": "SWC Condition from Previous Power Cycle: 0 = Normal Power-On, 1 = SWC Power Not Good",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2:0",
+          "name": "PMIC_ERROR_LOG",
+          "desc": "PMIC Power On - High Level Status Bit to Indicate Previous Power Down Cycle",
+          "type": "Enum",
+          "enum": {
+            "0": "Normal Power-On",
+            "1": "Reserved",
+            "2": "Buck Regulator Output Over or Undervoltage",
+            "3": "Critical Temperature",
+            "4": "VIN_Bulk Input Overvoltage",
+            "5": "Reserved",
+            "6": "Reserved",
+            "7": "Reserved"
+          }
+        }
+      ]
+    },
+    {
+      "addr": "0x06",
+      "name": "UVLO_OV_ERR_Log",
+      "full": "UVLO/OV ERR Log",
+      "cat": "Error",
+      "default": "0x00",
+      "type": "ROE",
+      "desc": "UVLO/OV ERR Log",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "A_UVLO",
+          "desc": "PMIC Power-On - SWA Undervoltage-Lockout: 0 = Normal Power-On, 1 = Power-On - SWA Undervoltage-Lockout",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "5",
+          "name": "B_UVLO",
+          "desc": "PMIC Power-On - SWB Undervoltage-Lockout: 0 = Normal Power-On, 1 = SWB Undervoltage-Lockout",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "4",
+          "name": "C_UVLO",
+          "desc": "PMIC Power-On - SWC Undervoltage-Lockout: 0 = Normal Power-On, 1 = SWC Undervoltage-Lockout",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3",
+          "name": "A_OV",
+          "desc": "PMIC Power-On - SWA Overvoltage: 0 = Normal Power-On, 1 = SWA Overvoltage",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "1",
+          "name": "B_OV",
+          "desc": "PMIC Power-On - SWB Overvoltage: 0 = Normal Power-On, 1 = SWB Overvoltage",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "0",
+          "name": "C_OV",
+          "desc": "PMIC Power-On - SWC Overvoltage: 0 = Normal Power-On, 1 = SWC Overvoltage",
+          "type": "Flag",
+          "active": true
+        }
+      ]
+    },
+    {
+      "addr": "0x07",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "ROE",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x08",
+      "name": "PMIC_Status_0",
+      "full": "PMIC Status_0",
+      "cat": "Status",
+      "default": "0x00",
+      "type": "RO",
+      "desc": "Power-Good Status",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "6",
+          "name": "OTP",
+          "desc": "Critical Temperature Shutdown Status: 0 = No Critical Temperature Shutdown, 1 = Critical Temperature Shutdown",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "5",
+          "name": "A_PG",
+          "desc": "Switch Node A Output Power-Good Status: 0 = Power Good, 1 = Power Not Good",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "4",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "3",
+          "name": "B_PG",
+          "desc": "Switch Node B Output Power-Good Status: 0 = Power Good, 1 = Power Not Good",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2",
+          "name": "C_PG",
+          "desc": "Switch Node C Output Power-Good Status: 0 = Power Good, 1 = Power Not Good",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "1",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "0",
+          "name": "VIN_BULK_OV",
+          "desc": "VIN_BULK Input Supply Overvoltage Status: 0 = No Overvoltage, 1 = Overvoltage",
+          "type": "Flag",
+          "active": true
+        }
+      ],
+      "special": "PmicStat0"
+    },
+    {
+      "addr": "0x09",
+      "name": "PMIC_Status_1",
+      "full": "PMIC Status_1",
+      "cat": "Status",
+      "default": "0x00",
+      "type": "RO",
+      "desc": "PMIC Status_1",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "HTW",
+          "desc": "PMIC High Temperature Warning Status: 0 = Temperature Below the Warning Threshold, 1 = Temperature Exceeded the Warning Threshold",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "5",
+          "name": "LDO_1.8V_PG",
+          "desc": "VLDO_1.8V LDO Output Power-Good Status: 0 = Power Good, 1 = Power Not Good",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "4",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "3",
+          "name": "A_HCW",
+          "desc": "Switch Node A High Output Current Consumption Warning Status: 0 = No High Current Consumption Warning, 1 = High Current Consumption Warning",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "1",
+          "name": "B_HCW",
+          "desc": "Switch Node B High Output Current Consumption Warning Status: 0 = No High Current Consumption Warning, 1 = High Current Consumption Warning",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "0",
+          "name": "C_HCW",
+          "desc": "Switch Node C High Output Current Consumption Warning Status: 0 = No High Current Consumption Warning, 1 = High Current Consumption Warning",
+          "type": "Flag",
+          "active": true
+        }
+      ],
+      "special": "PmicStat1"
+    },
+    {
+      "addr": "0x0A",
+      "name": "PMIC_Status_2",
+      "full": "PMIC Status_2",
+      "cat": "Status",
+      "default": "0x00",
+      "type": "RO",
+      "desc": "PMIC Status_2",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "A_OV",
+          "desc": "Switch Node A Output Overvoltage Status: 0 = No Overvoltage, 1 = Overvoltage",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "5",
+          "name": "B_OV",
+          "desc": "Switch Node B Output Overvoltage Status: 0 = No Overvoltage, 1 = Overvoltage",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "4",
+          "name": "C_OV",
+          "desc": "Switch Node C Output Overvoltage Status: 0 = No Overvoltage, 1 = Overvoltage",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3",
+          "name": "PEC_ERR",
+          "desc": "Packet Error Code Status: 0 = No PEC Error, 1 = PEC Error",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2",
+          "name": "PARITY_ERR",
+          "desc": "T Bit Parity Error Status: 0 = No Parity Error, 1 = Parity Error",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "1",
+          "name": "IBI",
+          "desc": "In Band Interrupt Status: 0 = No Pending IBI, 1 = Pending IBI",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "0",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x0B",
+      "name": "PMIC_Status_3",
+      "full": "PMIC Status_3",
+      "cat": "Status",
+      "default": "0x00",
+      "type": "RO",
+      "desc": "PMIC Status_3",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "A_OC",
+          "desc": "Switch Node A Output Current Limiter Warning Status: 0 = No Current Limiter Event, 1 = Current Limiter Event",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "5",
+          "name": "B_OC",
+          "desc": "Switch Node B Output Current Limiter Warning Status: 0 = No Current Limiter Event, 1 = Current Limiter Event",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "4",
+          "name": "C_OC",
+          "desc": "Switch Node C Output Current Limiter Warning Status: 0 = No Current Limiter Event, 1 = Current Limiter Event",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3",
+          "name": "A_UVLO",
+          "desc": "Switch Node A Output Undervoltage-Lockout Status: 0 = No Undervoltage-Lockout, 1 = Undervoltage-Lockout",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "1",
+          "name": "B_UVLO",
+          "desc": "Switch Node B Output Undervoltage-Lockout Status: 0 = No Undervoltage-Lockout, 1 = Undervoltage-Lockout",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "0",
+          "name": "C_UVLO",
+          "desc": "Switch Node C Output Undervoltage-Lockout Status: 0 = No Undervoltage-Lockout, 1 = Undervoltage-Lockout",
+          "type": "Flag",
+          "active": true
+        }
+      ]
+    },
+    {
+      "addr": "0x0C",
+      "name": "SWA_Current_Power",
+      "full": "SWA Current & Power Measurement",
+      "cat": "Measurement",
+      "default": "0x00",
+      "type": "RO",
+      "desc": "SWA Current and Power Measurement",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "SWA_OUTPUT_CURRENT_POWER_MEASUREMENT",
+          "desc": "SWA Output Current or Power Measurement (depends on Register 0x1A[1])",
+          "type": "Raw"
+        }
+      ],
+      "special": "SwaCurrent"
+    },
+    {
+      "addr": "0x0D",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x0E",
+      "name": "SWB_Current_Power",
+      "full": "SWB Current & Power Measurement",
+      "cat": "Measurement",
+      "default": "0x00",
+      "type": "RO",
+      "desc": "SWB Current and Power Measurement",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        },
+        {
+          "bits": "5:0",
+          "name": "SWB_OUTPUT_CURRENT_POWER_MEASUREMENT",
+          "desc": "Switch Node B Output Current or Output Power Measurement",
+          "type": "Raw"
+        }
+      ],
+      "special": "SwbCurrent"
+    },
+    {
+      "addr": "0x0F",
+      "name": "SWC_Current_Power",
+      "full": "SWC Current & Power Measurement",
+      "cat": "Measurement",
+      "default": "0x00",
+      "type": "RO",
+      "desc": "SWC Current and Power Measurement",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        },
+        {
+          "bits": "5:0",
+          "name": "SWC_OUTPUT_CURRENT_POWER_MEASUREMENT",
+          "desc": "Switch Node C Output Current or Output Power Measurement",
+          "type": "Raw"
+        }
+      ],
+      "special": "SwcCurrent"
+    },
+    {
+      "addr": "0x10",
+      "name": "Clear_Status_Bits_0",
+      "full": "Clear Status Bits_0",
+      "cat": "Clear",
+      "default": "0x00",
+      "type": "W1O",
+      "desc": "Clear Status Bits_0",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        },
+        {
+          "bits": "5",
+          "name": "CLEAR_SWA_OUTPUT_POWER_GOOD_STATUS",
+          "desc": "Clear SWA Output Power-Good Status: 1 = Clear Register 0x08[5]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "4",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "3",
+          "name": "CLEAR_SWB_OUTPUT_POWER_GOOD_STATUS",
+          "desc": "Clear SWB Output Power-Good Status: 1 = Clear Register 0x08[3]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2",
+          "name": "CLEAR_SWC_OUTPUT_POWER_GOOD_STATUS",
+          "desc": "Clear SWC Output Power-Good Status: 1 = Clear Register 0x08[2]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "1",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "0",
+          "name": "CLEAR_VIN_BULK_INPUT_OVER_VOLTAGE_STATUS",
+          "desc": "Clear VIN_BULK Input Supply Overvoltage Status: 1 = Clear Register 0x08[0]",
+          "type": "Flag",
+          "active": true
+        }
+      ]
+    },
+    {
+      "addr": "0x11",
+      "name": "Clear_Status_Bits_1",
+      "full": "Clear Status Bits_1",
+      "cat": "Clear",
+      "default": "0x00",
+      "type": "W1O",
+      "desc": "Clear Status Bits_1",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "CLEAR_PMIC_HIGH_TEMP_WARNING_STATUS",
+          "desc": "Clear PMIC High Temperature Warning Status: 1 = Clear Register 0x09[7]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "5",
+          "name": "CLEAR_VLDO_1.8V_OUTPUT_POWER_GOOD_STATUS",
+          "desc": "Clear VLDO_1.8V Output Power-Good Status: 1 = Clear Register 0x09[5]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "4",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "3",
+          "name": "CLEAR_SWA_HIGH_OUTPUT_CURRENT_CONSUMPTION_WARNING_STATUS",
+          "desc": "Clear Switch Node A High Output Current Consumption Warning Status: 1 = Clear Register 0x09[3]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "1",
+          "name": "CLEAR_SWB_HIGH_OUTPUT_CURRENT_CONSUMPTION_WARNING_STATUS",
+          "desc": "Clear Switch Node B High Output Current Consumption Warning Status: 1 = Clear Register 0x09[1]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "0",
+          "name": "CLEAR_SWC_HIGH_OUTPUT_CURRENT_CONSUMPTION_WARNING_STATUS",
+          "desc": "Clear Switch Node C High Output Current Consumption Warning Status: 1 = Clear Register 0x09[0]",
+          "type": "Flag",
+          "active": true
+        }
+      ]
+    },
+    {
+      "addr": "0x12",
+      "name": "Clear_Status_Bits_2",
+      "full": "Clear Status Bits_2",
+      "cat": "Clear",
+      "default": "0x00",
+      "type": "W1O",
+      "desc": "Clear Status Bits_2",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "CLEAR_SWA_OUTPUT_OVER_VOLTAGE_STATUS",
+          "desc": "Clear Switch Node A Output Overvoltage Status: 1 = Clear Register 0x0A[7]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "5",
+          "name": "CLEAR_SWB_OUTPUT_OVER_VOLTAGE_STATUS",
+          "desc": "Clear Switch Node B Output Overvoltage Status: 1 = Clear Register 0x0A[5]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "4",
+          "name": "CLEAR_SWC_OUTPUT_OVER_VOLTAGE_STATUS",
+          "desc": "Clear Switch Node C Output Overvoltage Status: 1 = Clear Register 0x0A[4]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3",
+          "name": "CLEAR_PEC_ERROR_STATUS",
+          "desc": "Clear PEC Error Status: 1 = Clear Register 0x0A[3]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2",
+          "name": "CLEAR_PARITY_ERROR_STATUS",
+          "desc": "Clear Parity Error Status: 1 = Clear Register 0x0A[2]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "1:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x13",
+      "name": "Clear_Status_Bits_3",
+      "full": "Clear Status Bits_3",
+      "cat": "Clear",
+      "default": "0x00",
+      "type": "W1O",
+      "desc": "Clear Status Bits_3",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "CLEAR_SWA_OUTPUT_CURRENT_LIMITER_WARNING_STATUS",
+          "desc": "Clear Switch Node A Output Current Limiter Warning Status: 1 = Clear Register 0x0B[7]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "5",
+          "name": "CLEAR_SWB_OUTPUT_CURRENT_LIMITER_WARNING_STATUS",
+          "desc": "Clear Switch Node B Output Current Limiter Warning Status: 1 = Clear Register 0x0B[5]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "4",
+          "name": "CLEAR_SWC_OUTPUT_CURRENT_LIMITER_WARNING_STATUS",
+          "desc": "Clear Switch Node C Output Current Limiter Warning Status: 1 = Clear Register 0x0B[4]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3",
+          "name": "CLEAR_SWA_OUTPUT_UNDER_VOLTAGE_LOCKOUT_STATUS",
+          "desc": "Clear Switch Node A Output Undervoltage-Lockout Status: 1 = Clear Register 0x0B[3]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "1",
+          "name": "CLEAR_SWB_OUTPUT_UNDER_VOLTAGE_LOCKOUT_STATUS",
+          "desc": "Clear Switch Node B Output Undervoltage-Lockout Status: 1 = Clear Register 0x0B[1]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "0",
+          "name": "CLEAR_SWC_OUTPUT_UNDER_VOLTAGE_LOCKOUT_STATUS",
+          "desc": "Clear Switch Node C Output Undervoltage-Lockout Status: 1 = Clear Register 0x0B[0]",
+          "type": "Flag",
+          "active": true
+        }
+      ]
+    },
+    {
+      "addr": "0x14",
+      "name": "Clear_Status_Bits_4",
+      "full": "Clear Status Bits_4",
+      "cat": "Clear",
+      "default": "0x00",
+      "type": "W1O",
+      "desc": "Clear Status Bits_4",
+      "fields": [
+        {
+          "bits": "7:3",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        },
+        {
+          "bits": "2",
+          "name": "CLEAR_VLDO_1.0V_OUTPUT_POWER_GOOD_STATUS",
+          "desc": "Clear VLDO_1.0V Output Power-Good Status: 1 = Clear Register 0x33[2]",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "1",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "0",
+          "name": "GLOBAL_CLEAR_STATUS",
+          "desc": "Clear all status bits: 1 = Clear all status bits",
+          "type": "Flag",
+          "active": true
+        }
+      ]
+    },
+    {
+      "addr": "0x15",
+      "name": "Mask_Status_0",
+      "full": "Mask Status_0",
+      "cat": "Mask",
+      "default": "0x2C",
+      "type": "RW",
+      "desc": "Mask Status_0",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        },
+        {
+          "bits": "5",
+          "name": "MASK_SWA_OUTPUT_POWER_GOOD_STATUS",
+          "desc": "Mask SWA Output Power-Good Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "4",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "3",
+          "name": "MASK_SWB_OUTPUT_POWER_GOOD_STATUS",
+          "desc": "Mask SWB Output Power-Good Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2",
+          "name": "MASK_SWC_OUTPUT_POWER_GOOD_STATUS",
+          "desc": "Mask SWC Output Power-Good Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "1",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "0",
+          "name": "MASK_VIN_BULK_INPUT_OVER_VOLTAGE_STATUS",
+          "desc": "Mask VIN_Bulk Input Supply Overvoltage Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        }
+      ]
+    },
+    {
+      "addr": "0x16",
+      "name": "Mask_Status_1",
+      "full": "Mask Status_1",
+      "cat": "Mask",
+      "default": "0x20",
+      "type": "RW",
+      "desc": "Mask Status_1",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "MASK_PMIC_HIGH_TEMP_WARNING_STATUS",
+          "desc": "Mask PMIC High Temperature Warning Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "5",
+          "name": "MASK_VLDO_1.8V_OUTPUT_POWER_GOOD_STATUS",
+          "desc": "Mask VLDO_1.8V Output Power-Good Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "4",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "3",
+          "name": "MASK_SWA_HIGH_OUTPUT_CURRENT_CONSUMPTION_WARNING_STATUS",
+          "desc": "Mask Switch Node A High Output Current Consumption Warning Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "1",
+          "name": "MASK_SWB_HIGH_OUTPUT_CURRENT_CONSUMPTION_WARNING_STATUS",
+          "desc": "Mask Switch Node B High Output Current Consumption Warning Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "0",
+          "name": "MASK_SWC_HIGH_OUTPUT_CURRENT_CONSUMPTION_WARNING_STATUS",
+          "desc": "Mask Switch Node C High Output Current Consumption Warning Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        }
+      ]
+    },
+    {
+      "addr": "0x17",
+      "name": "Mask_Status_2",
+      "full": "Mask Status_2",
+      "cat": "Mask",
+      "default": "0x00",
+      "type": "RW",
+      "desc": "Mask Status_2",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "MASK_SWA_OUTPUT_OVER_VOLTAGE_STATUS",
+          "desc": "Mask Switch Node A Output Overvoltage Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "5",
+          "name": "MASK_SWB_OUTPUT_OVER_VOLTAGE_STATUS",
+          "desc": "Mask Switch Node B Output Overvoltage Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "4",
+          "name": "MASK_SWC_OUTPUT_OVER_VOLTAGE_STATUS",
+          "desc": "Mask Switch Node C Output Overvoltage Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3",
+          "name": "MASK_PEC_ERROR_STATUS",
+          "desc": "Mask PEC Error Event for GSI_n output Only: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2",
+          "name": "MASK_PARITY_ERROR_STATUS",
+          "desc": "Mask Parity Error Event for GSI_n output Only: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "1:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x18",
+      "name": "Mask_Status_3",
+      "full": "Mask Status_3",
+      "cat": "Mask",
+      "default": "0x00",
+      "type": "RW",
+      "desc": "Mask Status_3",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "MASK_SWA_OUTPUT_CURRENT_LIMITER_WARNING_STATUS",
+          "desc": "Mask Switch Node A Output Current Limiter Warning Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "5",
+          "name": "MASK_SWB_OUTPUT_CURRENT_LIMITER_WARNING_STATUS",
+          "desc": "Mask Switch Node B Output Current Limiter Warning Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "4",
+          "name": "MASK_SWC_OUTPUT_CURRENT_LIMITER_WARNING_STATUS",
+          "desc": "Mask Switch Node C Output Current Limiter Warning Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3",
+          "name": "MASK_SWA_OUTPUT_UNDER_VOLTAGE_LOCKOUT_STATUS",
+          "desc": "Mask Switch Node A Output Undervoltage-Lockout Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "1",
+          "name": "MASK_SWB_OUTPUT_UNDER_VOLTAGE_LOCKOUT_STATUS",
+          "desc": "Mask Switch Node B Output Undervoltage-Lockout Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "0",
+          "name": "MASK_SWC_OUTPUT_UNDER_VOLTAGE_LOCKOUT_STATUS",
+          "desc": "Mask Switch Node C Output Undervoltage-Lockout Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        }
+      ]
+    },
+    {
+      "addr": "0x19",
+      "name": "Mask_Status_4",
+      "full": "Mask Status_4",
+      "cat": "Mask",
+      "default": "0x04",
+      "type": "RW",
+      "desc": "Mask Status_4",
+      "fields": [
+        {
+          "bits": "7:3",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        },
+        {
+          "bits": "2",
+          "name": "MASK_VLDO_1.0V_OUTPUT_POWER_GOOD_STATUS",
+          "desc": "Mask VLDO_1.0V Output Power-Good Status Event: 0 = Do Not Mask, 1 = Mask",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "1:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x1A",
+      "name": "Threshold_Settings_1",
+      "full": "Threshold Settings_1",
+      "cat": "Threshold",
+      "default": "0x00",
+      "type": "RW",
+      "desc": "Threshold Settings_1",
+      "fields": [
+        {
+          "bits": "7:5",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        },
+        {
+          "bits": "4",
+          "name": "LOW_IQ_EN",
+          "desc": "PMIC Quiescent State Entry Enable: 0 = Disable, 1 = Enable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "2",
+          "name": "LDO_1.8V_PG",
+          "desc": "VOUT 1.8V LDO Output Threshold Voltage for Power-Good Status: 0 = 1.6V, 1 = Reserved",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "1",
+          "name": "POWER_MEAS_SEL",
+          "desc": "Switch Regulator Output Power Select: 0 = Report Power Measurement for Each Rail, 1 = Report Total Power Measurement",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "0",
+          "name": "LDO_1.0V_PG",
+          "desc": "VOUT 1.0V LDO Output Threshold Voltage for Power-Good Status: 0 = -10% from setting, 1 = -15% from setting",
+          "type": "Flag",
+          "active": true
+        }
+      ]
+    },
+    {
+      "addr": "0x1B",
+      "name": "Threshold_Settings_2",
+      "full": "Threshold Settings_2",
+      "cat": "Threshold",
+      "default": "0x05",
+      "type": "RW",
+      "desc": "Threshold Settings_2",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "VIN_BULK_OV",
+          "desc": "VIN_Bulk Input Overvoltage Threshold Setting For GSI_n Assertion: 0 = 6V, 1 = Reserved",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "CURRENT_OR_POWER_SEL",
+          "desc": "PMIC Output Regulator Measurement - Current or Power Meter: 0 = Report Current Measurements, 1 = Report Power Measurements",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "5",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "4",
+          "name": "PG_MASK",
+          "desc": "Global Mask PWR_GOOD Output Pin: 0 = Not Masked, 1 = Masked",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3",
+          "name": "GSI_N_EN",
+          "desc": "Enable GSI_n Pin: 0 = Disable GSI_n Pin, 1 = Enable GSI_n Pin",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2:0",
+          "name": "HTW",
+          "desc": "PMIC High Temperature Warning Threshold",
+          "type": "Temp",
+          "enum": {
+            "0": "Reserved",
+            "1": "PMIC temperature ≥ 85°C",
+            "2": "PMIC temperature ≥ 95°C",
+            "3": "PMIC temperature ≥ 105°C",
+            "4": "PMIC temperature ≥ 115°C",
+            "5": "PMIC temperature ≥ 125°C",
+            "6": "PMIC temperature ≥ 135°C",
+            "7": "Reserved"
+          }
+        }
+      ]
+    },
+    {
+      "addr": "0x1C",
+      "name": "SWA_High_Current_Warning_Threshold",
+      "full": "SWA High Current Warning Threshold",
+      "cat": "Threshold",
+      "default": "0x60",
+      "type": "RW",
+      "desc": "SWA High Current Warning Threshold",
+      "fields": [
+        {
+          "bits": "7:2",
+          "name": "SWA_OUTPUT_HIGH_CURRENT_CONSUMPTION_WARNING_TH",
+          "desc": "Switch Node A Output High Current Consumption Warning Threshold (0.125A to 7.875A in 0.125A steps)",
+          "type": "Curr"
+        },
+        {
+          "bits": "1:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x1D",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x1E",
+      "name": "SWB_High_Current_Warning_Threshold",
+      "full": "SWB High Current Warning Threshold",
+      "cat": "Threshold",
+      "default": "0x60",
+      "type": "RW",
+      "desc": "SWB High Current Warning Threshold",
+      "fields": [
+        {
+          "bits": "7:2",
+          "name": "SWB_OUTPUT_HIGH_CURRENT_CONSUMPTION_WARNING_TH",
+          "desc": "Switch Node B Output High Current Consumption Warning Threshold (0.125A to 7.875A in 0.125A steps)",
+          "type": "Curr"
+        },
+        {
+          "bits": "1:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x1F",
+      "name": "SWC_High_Current_Warning_Threshold",
+      "full": "SWC High Current Warning Threshold",
+      "cat": "Threshold",
+      "default": "0x60",
+      "type": "RW",
+      "desc": "SWC High Current Warning Threshold",
+      "fields": [
+        {
+          "bits": "7:2",
+          "name": "SWC_OUTPUT_HIGH_CURRENT_CONSUMPTION_WARNING_TH",
+          "desc": "Switch Node C Output High Current Consumption Warning Threshold (0.125A to 7.875A in 0.125A steps)",
+          "type": "Curr"
+        },
+        {
+          "bits": "1:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x20",
+      "name": "OC_Threshold",
+      "full": "OC Threshold",
+      "cat": "Threshold",
+      "default": "0xCF",
+      "type": "RW",
+      "desc": "OC Threshold",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "A_OC",
+          "desc": "SWA Output Current Limiter Warning Threshold Setting For COT Mode, Ivalley_limit",
+          "type": "Enum",
+          "enum": {
+            "0": "3.0A",
+            "1": "3.5A",
+            "2": "4.0A",
+            "3": "4.5A"
+          }
+        },
+        {
+          "bits": "5:4",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        },
+        {
+          "bits": "3:2",
+          "name": "B_OC",
+          "desc": "SWB Output Current Limiter Warning Threshold Setting For COT Mode, Ivalley_limit",
+          "type": "Enum",
+          "enum": {
+            "0": "3.0A",
+            "1": "3.5A",
+            "2": "4.0A",
+            "3": "4.5A"
+          }
+        },
+        {
+          "bits": "1:0",
+          "name": "C_OC",
+          "desc": "SWC Output Current Limiter Warning Threshold Setting For COT Mode, Ivalley_limit",
+          "type": "Enum",
+          "enum": {
+            "0": "0.5A",
+            "1": "1.0A",
+            "2": "1.5A",
+            "3": "2.0A"
+          }
+        }
+      ],
+      "special": "OcThreshold"
+    },
+    {
+      "addr": "0x21",
+      "name": "SWA_Voltage_Threshold",
+      "full": "SWA Voltage & Threshold",
+      "cat": "Voltage",
+      "default": "0x78",
+      "type": "RW",
+      "desc": "SWA Voltage Setting",
+      "fields": [
+        {
+          "bits": "7:1",
+          "name": "VOLTAGE_SETTING",
+          "desc": "SWA voltage setting: 800-1435mV in 5mV steps",
+          "type": "Volt"
+        },
+        {
+          "bits": "0",
+          "name": "PGL",
+          "desc": "SWA Power Good Threshold Low-Side Voltage Setting: 0 = -5% from setting, 1 = -7.5% from setting",
+          "type": "Flag",
+          "active": false
+        }
+      ],
+      "special": "SwaVoltage"
+    },
+    {
+      "addr": "0x22",
+      "name": "SWA_Threshold_Softstop",
+      "full": "SWA Threshold & Soft-stop Time",
+      "cat": "Threshold",
+      "default": "0x63",
+      "type": "RW",
+      "desc": "SWA Threshold & Soft-stop Time",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "PGH",
+          "desc": "SWA Power Good Threshold High-Side Voltage Upper bound level",
+          "type": "Enum",
+          "enum": {
+            "0": "+5% from setting",
+            "1": "+7.5% from setting",
+            "2": "+10% from setting",
+            "3": "+2.5% from setting"
+          }
+        },
+        {
+          "bits": "5:4",
+          "name": "OV",
+          "desc": "SWA Overvoltage Threshold Setting",
+          "type": "Enum",
+          "enum": {
+            "0": "+7.5% from setting",
+            "1": "+10% from setting",
+            "2": "+12.5% from setting",
+            "3": "+5% from setting"
+          }
+        },
+        {
+          "bits": "3:2",
+          "name": "UVLO",
+          "desc": "SWA Undervoltage-Lockout Threshold Setting",
+          "type": "Enum",
+          "enum": {
+            "0": "-10% from setting",
+            "1": "-12.5% from setting",
+            "2": "-5% from setting",
+            "3": "-7.5% from setting"
+          }
+        },
+        {
+          "bits": "1:0",
+          "name": "SOFT_STOP_TIME",
+          "desc": "SWA Output Regulator Soft-Stop Time After VR Disable",
+          "type": "Time",
+          "enum": {
+            "0": "0.5ms",
+            "1": "1ms",
+            "2": "2ms",
+            "3": "4ms"
+          }
+        }
+      ],
+      "special": "SwaThreshold"
+    },
+    {
+      "addr": "0x23",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x24",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RW",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x25",
+      "name": "SWB_Voltage_Threshold",
+      "full": "SWB Voltage & Threshold",
+      "cat": "Voltage",
+      "default": "0x78",
+      "type": "RW",
+      "desc": "SWB Voltage Setting",
+      "fields": [
+        {
+          "bits": "7:1",
+          "name": "VOLTAGE_SETTING",
+          "desc": "SWB voltage setting: 800-1435mV in 5mV steps",
+          "type": "Volt"
+        },
+        {
+          "bits": "0",
+          "name": "PGL",
+          "desc": "SWB Power Good Threshold Low-Side Voltage Setting: 0 = -5% from setting, 1 = -7.5% from setting",
+          "type": "Flag",
+          "active": false
+        }
+      ],
+      "special": "SwbVoltage"
+    },
+    {
+      "addr": "0x26",
+      "name": "SWB_Threshold_Softstop",
+      "full": "SWB Threshold & Soft-stop Time",
+      "cat": "Threshold",
+      "default": "0x63",
+      "type": "RW",
+      "desc": "SWB Threshold and Soft-Stop Time",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "PGH",
+          "desc": "SWB Power Good Threshold High-Side Voltage Upper bound level",
+          "type": "Enum",
+          "enum": {
+            "0": "+5% from setting",
+            "1": "+7.5% from setting",
+            "2": "+10% from setting",
+            "3": "+2.5% from setting"
+          }
+        },
+        {
+          "bits": "5:4",
+          "name": "OV",
+          "desc": "SWB Overvoltage Threshold Setting",
+          "type": "Enum",
+          "enum": {
+            "0": "+7.5% from setting",
+            "1": "+10% from setting",
+            "2": "+12.5% from setting",
+            "3": "+5% from setting"
+          }
+        },
+        {
+          "bits": "3:2",
+          "name": "UVLO",
+          "desc": "SWB Undervoltage-Lockout Threshold Setting",
+          "type": "Enum",
+          "enum": {
+            "0": "-10% from setting",
+            "1": "-12.5% from setting",
+            "2": "-5% from setting",
+            "3": "-7.5% from setting"
+          }
+        },
+        {
+          "bits": "1:0",
+          "name": "SOFT_STOP_TIME",
+          "desc": "SWB Output Regulator Soft-Stop Time After VR Disable",
+          "type": "Time",
+          "enum": {
+            "0": "0.5ms",
+            "1": "1ms",
+            "2": "2ms",
+            "3": "4ms"
+          }
+        }
+      ],
+      "special": "SwbThreshold"
+    },
+    {
+      "addr": "0x27",
+      "name": "SWC_Voltage_Threshold",
+      "full": "SWC Voltage & Threshold",
+      "cat": "Voltage",
+      "default": "0x78",
+      "type": "RW",
+      "desc": "SWC Voltage Setting",
+      "fields": [
+        {
+          "bits": "7:1",
+          "name": "VOLTAGE_SETTING",
+          "desc": "SWC voltage setting: 1500-2135mV in 5mV steps",
+          "type": "Volt"
+        },
+        {
+          "bits": "0",
+          "name": "PGL",
+          "desc": "SWC Power Good Threshold Low-Side Voltage Setting: 0 = -5% from setting, 1 = -7.5% from setting",
+          "type": "Flag",
+          "active": false
+        }
+      ],
+      "special": "SwcVoltage"
+    },
+    {
+      "addr": "0x28",
+      "name": "SWC_Threshold_Softstop",
+      "full": "SWC Threshold & Soft-stop Time",
+      "cat": "Threshold",
+      "default": "0x63",
+      "type": "RW",
+      "desc": "SWC Threshold and Soft-Stop Time",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "PGH",
+          "desc": "SWC Power Good Threshold High-Side Voltage Upper bound level",
+          "type": "Enum",
+          "enum": {
+            "0": "+5% from setting",
+            "1": "+7.5% from setting",
+            "2": "+10% from setting",
+            "3": "+2.5% from setting"
+          }
+        },
+        {
+          "bits": "5:4",
+          "name": "OV",
+          "desc": "SWC Overvoltage Threshold Setting",
+          "type": "Enum",
+          "enum": {
+            "0": "+7.5% from setting",
+            "1": "+10% from setting",
+            "2": "+12.5% from setting",
+            "3": "+5% from setting"
+          }
+        },
+        {
+          "bits": "3:2",
+          "name": "UVLO",
+          "desc": "SWC Undervoltage-Lockout Threshold Setting",
+          "type": "Enum",
+          "enum": {
+            "0": "-10% from setting",
+            "1": "-12.5% from setting",
+            "2": "-5% from setting",
+            "3": "-7.5% from setting"
+          }
+        },
+        {
+          "bits": "1:0",
+          "name": "SOFT_STOP_TIME",
+          "desc": "SWC Output Regulator Soft-Stop Time After VR Disable",
+          "type": "Time",
+          "enum": {
+            "0": "1ms",
+            "1": "2ms",
+            "2": "4ms",
+            "3": "8ms"
+          }
+        }
+      ],
+      "special": "SwcThreshold"
+    },
+    {
+      "addr": "0x29",
+      "name": "FSW_Mode_1",
+      "full": "FSW & Mode_1",
+      "cat": "Switching",
+      "default": "0x80",
+      "type": "RW",
+      "desc": "FSW and Mode_1",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "A_MODE_SEL",
+          "desc": "SWA Output Regulator Mode Selection",
+          "type": "Enum",
+          "enum": {
+            "0": "Reserved",
+            "1": "Reserved",
+            "2": "COT; DCM (Constant On-Time; Discontinuous Current Mode)",
+            "3": "COT; Forced CCM (Constant On-Time; Continuous Current Mode)"
+          }
+        },
+        {
+          "bits": "5:4",
+          "name": "A_FSW",
+          "desc": "SWA Output Regulator Switching Frequency",
+          "type": "Freq",
+          "enum": {
+            "0": "750kHz",
+            "1": "1000kHz",
+            "2": "1250kHz",
+            "3": "1500kHz"
+          }
+        },
+        {
+          "bits": "3:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ],
+      "special": "FswMode1"
+    },
+    {
+      "addr": "0x2A",
+      "name": "FSW_Mode_2",
+      "full": "FSW & Mode_2",
+      "cat": "Switching",
+      "default": "0x88",
+      "type": "RW",
+      "desc": "FSW and Mode_2",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "B_MODE_SEL",
+          "desc": "SWB Output Regulator Mode Selection",
+          "type": "Enum",
+          "enum": {
+            "0": "Reserved",
+            "1": "Reserved",
+            "2": "COT; DCM (Constant On-Time; Discontinuous Current Mode)",
+            "3": "COT; Forced CCM (Constant On-Time; Continuous Current Mode)"
+          }
+        },
+        {
+          "bits": "5:4",
+          "name": "B_FSW",
+          "desc": "SWB Output Regulator Switching Frequency",
+          "type": "Freq",
+          "enum": {
+            "0": "750kHz",
+            "1": "1000kHz",
+            "2": "1250kHz",
+            "3": "1500kHz"
+          }
+        },
+        {
+          "bits": "3:2",
+          "name": "C_MODE_SEL",
+          "desc": "SWC Output Regulator Mode Selection",
+          "type": "Enum",
+          "enum": {
+            "0": "Reserved",
+            "1": "Reserved",
+            "2": "COT; DCM (Constant On-Time; Discontinuous Current Mode)",
+            "3": "COT; Forced CCM (Constant On-Time; Continuous Current Mode)"
+          }
+        },
+        {
+          "bits": "1:0",
+          "name": "C_FSW",
+          "desc": "SWC Output Regulator Switching Frequency",
+          "type": "Freq",
+          "enum": {
+            "0": "750kHz",
+            "1": "1000kHz",
+            "2": "1250kHz",
+            "3": "1500kHz"
+          }
+        }
+      ],
+      "special": "FswMode2"
+    },
+    {
+      "addr": "0x2B",
+      "name": "Buck_LDO_Output_Voltage_Range",
+      "full": "Buck & LDO Output Voltage Range",
+      "cat": "Voltage",
+      "default": "0x42",
+      "type": "RW",
+      "desc": "LDO Output Voltage Range",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "LDO_1.8V_VOLTAGE",
+          "desc": "VLDO_1.8V Voltage Setting",
+          "type": "Enum",
+          "enum": {
+            "0": "1.7V",
+            "1": "1.8V",
+            "2": "1.9V",
+            "3": "2.0V"
+          }
+        },
+        {
+          "bits": "5:3",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        },
+        {
+          "bits": "2:1",
+          "name": "LDO_1.0V_VOLTAGE",
+          "desc": "VLDO_1.0V Voltage Setting",
+          "type": "Enum",
+          "enum": {
+            "0": "0.9V",
+            "1": "1.0V",
+            "2": "1.1V",
+            "3": "1.2V"
+          }
+        },
+        {
+          "bits": "0",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        }
+      ],
+      "special": "LdoVoltage"
+    },
+    {
+      "addr": "0x2C",
+      "name": "Soft_start_Time_1",
+      "full": "Soft-start Time_1",
+      "cat": "Timing",
+      "default": "0x20",
+      "type": "RW",
+      "desc": "Soft-start Time_1",
+      "fields": [
+        {
+          "bits": "7:5",
+          "name": "A_SOFT_START_TIME",
+          "desc": "SWA Output Regulator Soft-Start Time After VR Enable",
+          "type": "Time",
+          "enum": {
+            "0": "1ms",
+            "1": "2ms",
+            "2": "4ms",
+            "3": "6ms",
+            "4": "8ms",
+            "5": "10ms",
+            "6": "12ms",
+            "7": "14ms"
+          }
+        },
+        {
+          "bits": "4:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ],
+      "special": "SoftStart1"
+    },
+    {
+      "addr": "0x2D",
+      "name": "Soft_start_Time_2",
+      "full": "Soft-start Time_2",
+      "cat": "Timing",
+      "default": "0x22",
+      "type": "RW",
+      "desc": "Soft-Start Time_2",
+      "fields": [
+        {
+          "bits": "7:5",
+          "name": "B_SOFT_START_TIME",
+          "desc": "SWB Output Regulator Soft-Start Time After VR Enable",
+          "type": "Time",
+          "enum": {
+            "0": "1ms",
+            "1": "2ms",
+            "2": "4ms",
+            "3": "6ms",
+            "4": "8ms",
+            "5": "10ms",
+            "6": "12ms",
+            "7": "14ms"
+          }
+        },
+        {
+          "bits": "4",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "3:1",
+          "name": "C_SOFT_START_TIME",
+          "desc": "SWC Output Regulator Soft-Start Time After VR Enable",
+          "type": "Time",
+          "enum": {
+            "0": "1ms",
+            "1": "2ms",
+            "2": "4ms",
+            "3": "6ms",
+            "4": "8ms",
+            "5": "10ms",
+            "6": "12ms",
+            "7": "14ms"
+          }
+        },
+        {
+          "bits": "0",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        }
+      ],
+      "special": "SoftStart2"
+    },
+    {
+      "addr": "0x2E",
+      "name": "OTP_Threshold",
+      "full": "OTP Threshold",
+      "cat": "Threshold",
+      "default": "0x04",
+      "type": "RW",
+      "desc": "OTP Threshold",
+      "fields": [
+        {
+          "bits": "7:3",
+          "name": "RESERVED",
+          "desc": "Internal settings",
+          "type": "Raw"
+        },
+        {
+          "bits": "2:0",
+          "name": "OTP",
+          "desc": "PMIC Shutdown Temperature Threshold",
+          "type": "Temp",
+          "enum": {
+            "0": "PMIC Temperature ≥ 105°C",
+            "1": "PMIC Temperature ≥ 115°C",
+            "2": "PMIC Temperature ≥ 125°C",
+            "3": "PMIC Temperature ≥ 135°C",
+            "4": "PMIC Temperature ≥ 145°C",
+            "5": "Reserved",
+            "6": "Reserved",
+            "7": "Reserved"
+          }
+        }
+      ],
+      "special": "OtpThreshold"
+    },
+    {
+      "addr": "0x2F",
+      "name": "PMIC_Configuration",
+      "full": "PMIC Configuration",
+      "cat": "Config",
+      "default": "0x06",
+      "type": "RW",
+      "desc": "PMIC Configuration",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "6",
+          "name": "A_EN",
+          "desc": "Disable SWA Regulator Output: 0 = Disable Switch Node A Output Regulator, 1 = Enable Switch Node A Output Regulator",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "5",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "4",
+          "name": "B_EN",
+          "desc": "Disable SWB Regulator Output: 0 = Disable Switch Node B Output Regulator, 1 = Enable Switch Node B Output Regulator",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3",
+          "name": "C_EN",
+          "desc": "Disable SWC Regulator Output: 0 = Disable Switch Node C Output Regulator, 1 = Enable Switch Node C Output Regulator",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2",
+          "name": "WRITE_PROTECTION",
+          "desc": "PMIC Mode Operation: 0 = Secure Mode Operation, 1 = Programmable Mode Operation",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "1:0",
+          "name": "MASK_BITS_REGISTER_CONTROL",
+          "desc": "Mask Bits Register Control",
+          "type": "Enum",
+          "enum": {
+            "0": "Mask GSI_n Signal Only (PWR_GOOD Signal will assert)",
+            "1": "Mask PWR_GOOD Only (GSI_n signal will assert)",
+            "2": "Mask GSI_n and PWR_GOOD Signals",
+            "3": "Reserved"
+          }
+        }
+      ]
+    },
+    {
+      "addr": "0x30",
+      "name": "ADC_Configuration",
+      "full": "ADC Configuration",
+      "cat": "ADC",
+      "default": "0x00",
+      "type": "RW",
+      "desc": "ADC Configuration",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "ADC_EN",
+          "desc": "Enable ADC (Analog to Digital Conversion): 0 = Disable, 1 = Enable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6:3",
+          "name": "ADC_SEL",
+          "desc": "Input Selection for ADC Readout",
+          "type": "Enum",
+          "enum": {
+            "0": "SWA Output Voltage",
+            "1": "Reserved",
+            "2": "SWB Output Voltage",
+            "3": "SWC Output Voltage",
+            "4": "Reserved",
+            "5": "VIN_BULK Input Voltage",
+            "6": "Reserved",
+            "7": "Reserved",
+            "8": "VLDO_1.8V Output Voltage",
+            "9": "VLDO_1.0V Output Voltage"
+          }
+        },
+        {
+          "bits": "2",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "1:0",
+          "name": "ADC_UPDATE_FREQ",
+          "desc": "ADC Current or Power Measurement Update Frequency",
+          "type": "Time",
+          "enum": {
+            "0": "1ms",
+            "1": "2ms",
+            "2": "4ms",
+            "3": "8ms"
+          }
+        }
+      ]
+    },
+    {
+      "addr": "0x31",
+      "name": "ADC_Read",
+      "full": "ADC Read",
+      "cat": "ADC",
+      "default": "0x00",
+      "type": "RO",
+      "desc": "ADC Read",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "ADC_READ",
+          "desc": "ADC Output Voltage Reading (15mV steps for SW/ LDO outputs, 70mV steps for VIN_BULK)",
+          "type": "Volt"
+        }
+      ],
+      "special": "AdcRead"
+    },
+    {
+      "addr": "0x32",
+      "name": "PMIC_EN_Interface",
+      "full": "PMIC_EN & Interface",
+      "cat": "Interface",
+      "default": "0x00",
+      "type": "RW/RO",
+      "desc": "PMIC_EN and Interface Selection",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "VR_EN",
+          "desc": "PMIC Enable: 0 = PMIC Disable, 1 = PMIC Enable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "I2C/I3C",
+          "desc": "PMIC Management Bus Interface Protocol Selection: 0 = I2C Interface (Max speed 1MHz), 1 = I3C Basic Protocol",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "5",
+          "name": "PG_IO_TYPE",
+          "desc": "PMIC PWR_GOOD Output Signal Type: 0 = Output only, 1 = Input and Output",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "4:3",
+          "name": "PG_CONTROL",
+          "desc": "PMIC PWR_GOOD Output Signal Control",
+          "type": "Enum",
+          "enum": {
+            "0": "PMIC controls PWR_GOOD on its own",
+            "1": "PMIC controls PWR_GOOD on its own",
+            "2": "PWR_GOOD Output Low",
+            "3": "PWR_GOOD Output Float"
+          }
+        },
+        {
+          "bits": "2:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x33",
+      "name": "PMIC_Status_4",
+      "full": "PMIC Status_4",
+      "cat": "Status",
+      "default": "0x00",
+      "type": "RO",
+      "desc": "PMIC Status_4",
+      "fields": [
+        {
+          "bits": "7:5",
+          "name": "TEMP_MEAS",
+          "desc": "PMIC Temperature Measurement",
+          "type": "Temp",
+          "enum": {
+            "0": "< 80°C (±5°C)",
+            "1": "85°C (±5°C)",
+            "2": "95°C (±5°C)",
+            "3": "105°C (±5°C)",
+            "4": "115°C (±5°C)",
+            "5": "125°C (±5°C)",
+            "6": "135°C (±5°C)",
+            "7": "≥ 140°C (±5°C)"
+          }
+        },
+        {
+          "bits": "4:3",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        },
+        {
+          "bits": "2",
+          "name": "LDO_1.0V_PG",
+          "desc": "VLDO_1.0V LDO Output Power-Good Status: 0 = Power Good, 1 = Power Not Good",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "1:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x34",
+      "name": "PEC_IBI_PARITY_HID_CODE",
+      "full": "PEC/IBI/PARITY/HID_CODE",
+      "cat": "Interface",
+      "default": "0x0E",
+      "type": "RO",
+      "desc": "PEC/IBI/PARITY/HID_CODE",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "PEC_EN",
+          "desc": "Packet Error Code Enable (Applicable Only if 0x32[6] = '1'): 0 = Disable, 1 = Enable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "IBI_EN",
+          "desc": "In Band Interrupt Enable (Applicable Only if 0x32[6] = '1'): 0 = Disable, 1 = Enable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "5",
+          "name": "PARITY_DIS",
+          "desc": "T Bit Parity Code Disable (Applicable Only if 0x32[6] = '1'): 0 = Enable, 1 = Disable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "4",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "3:1",
+          "name": "HID_CODE",
+          "desc": "PMIC's 3-bit HID Code",
+          "type": "Raw"
+        },
+        {
+          "bits": "0",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x35",
+      "name": "Error_Injection",
+      "full": "Error Injection",
+      "cat": "Config",
+      "default": "0x00",
+      "type": "RW",
+      "desc": "Error Injection",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "EN",
+          "desc": "Error Injection Enable: 0 = Disable, 1 = Enable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6:4",
+          "name": "RAIL_SEL",
+          "desc": "Error Injection - Input Rail and Output Rail Selection",
+          "type": "Enum",
+          "enum": {
+            "0": "Undefined",
+            "1": "SWA Output Only",
+            "2": "Reserved",
+            "3": "SWB Output Only",
+            "4": "SWC Output Only",
+            "5": "VIN_Bulk Input Only",
+            "6": "Reserved",
+            "7": "Do Not Use"
+          }
+        },
+        {
+          "bits": "3",
+          "name": "OV_UV_ERR_TYPE",
+          "desc": "Overvoltage or Undervoltage Selection: 0 = Overvoltage, 1 = Undervoltage",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2:0",
+          "name": "MISC_ERROR_TYPE",
+          "desc": "Miscellaneous Error Injection Type",
+          "type": "Enum",
+          "enum": {
+            "0": "Undefined",
+            "1": "Reserved",
+            "2": "Critical Temperature Shutdown",
+            "3": "High Temperature Warning Threshold",
+            "4": "VLDO_1.8V LDO Power Good",
+            "5": "High Current Consumption Warning",
+            "6": "Reserved",
+            "7": "Current Limiter Warning"
+          }
+        }
+      ]
+    },
+    {
+      "addr": "0x36",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x37",
+      "name": "DIMM_Vendor_Password_Lower",
+      "full": "DIMM Vendor Region Password Lower Byte",
+      "cat": "Password",
+      "default": "0x00",
+      "type": "W",
+      "desc": "DIMM Vendor Region Password Lower Byte",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "DIMM_VENDOR_PASSWORD_L",
+          "desc": "DIMM Vendor Memory Region (0x40 - R6F) Password - Lower Byte",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x38",
+      "name": "DIMM_Vendor_Password_Upper",
+      "full": "DIMM Vendor Region Password Upper Byte",
+      "cat": "Password",
+      "default": "0x00",
+      "type": "W",
+      "desc": "DIMM Vendor Region Password Upper Byte",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "DIMM_VENDOR_PASSWORD_H",
+          "desc": "DIMM Vendor Memory Region (0x40 - R6F) Password - Upper Byte",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x39",
+      "name": "DIMM_Vendor_Password_Control",
+      "full": "DIMM Vendor Password Control",
+      "cat": "Password",
+      "default": "0x00",
+      "type": "RW",
+      "desc": "DIMM Vendor Password Control",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "DIMM_VENDOR_PASSWORD_CONTROL",
+          "desc": "Control codes for DIMM Vendor Region access and programming",
+          "type": "Enum",
+          "enum": {
+            "0": "Lock DIMM Vendor Region",
+            "64": "Unlock DIMM Vendor Region",
+            "116": "Clear Registers 0x04 to 0x07, Erase MTP memory for 0x04 Register",
+            "128": "Burn DIMM Vendor Region Password",
+            "129": "Burn DIMM Vendor Region - 0x40 to 0x4F",
+            "130": "Burn DIMM Vendor Region - 0x50 to 0x5F",
+            "133": "Burn DIMM Vendor Region - 0x60 to 0x6F",
+            "90": "Burning is complete in DIMM Vendor region"
+          }
+        }
+      ]
+    },
+    {
+      "addr": "0x3A",
+      "name": "Default_Address_Pointer",
+      "full": "Default Address Pointer Function",
+      "cat": "Interface",
+      "default": "0x00",
+      "type": "RW",
+      "desc": "Default Address Pointer",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "6",
+          "name": "EN",
+          "desc": "Enable Default Address Read Pointer when PMIC sees STOP operation: 0 = Disable, 1 = Enable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "5:4",
+          "name": "STARTING_ADDRESS",
+          "desc": "Default Read Address Pointer Selection when PMIC sees STOP operation",
+          "type": "Enum",
+          "enum": {
+            "0": "0x08",
+            "1": "0x0C",
+            "2": "Reserved",
+            "3": "Reserved"
+          }
+        },
+        {
+          "bits": "3:2",
+          "name": "BURST_LENGTH",
+          "desc": "Burst Length (# of Bytes) to be transferred for Read Default Address Pointer Mode",
+          "type": "Enum",
+          "enum": {
+            "0": "2 Bytes",
+            "1": "4 Bytes",
+            "2": "Reserved",
+            "3": "16 Bytes"
+          }
+        },
+        {
+          "bits": "1:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x3B",
+      "name": "Revision_ID",
+      "full": "Revision ID",
+      "cat": "ID",
+      "default": "--",
+      "type": "ROE",
+      "desc": "Revision ID",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        },
+        {
+          "bits": "5:4",
+          "name": "MAJREV",
+          "desc": "Major Revision Stepping",
+          "type": "Enum",
+          "enum": {
+            "0": "Revision 1",
+            "1": "Revision 2",
+            "2": "Revision 3",
+            "3": "Revision 4"
+          }
+        },
+        {
+          "bits": "3:1",
+          "name": "MINREV",
+          "desc": "Minor Revision Stepping",
+          "type": "Enum",
+          "enum": {
+            "0": "Revision 0",
+            "1": "Revision 1",
+            "2": "Revision 2",
+            "3": "Revision 3"
+          }
+        },
+        {
+          "bits": "0",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x3C",
+      "name": "Vendor_ID_Byte_0",
+      "full": "Vendor ID Byte 0",
+      "cat": "Vendor",
+      "default": "0x8A",
+      "type": "ROE",
+      "desc": "Vendor ID Byte 0",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "VENDOR_ID_BYTE0",
+          "desc": "Vendor Identification Register Byte 0",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x3D",
+      "name": "Vendor_ID_Byte_1",
+      "full": "Vendor ID Byte 1",
+      "cat": "Vendor",
+      "default": "0x8C",
+      "type": "ROE",
+      "desc": "Vendor ID Byte 1",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "VENDOR_ID_BYTE1",
+          "desc": "Vendor Identification Register Byte 1",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x3E",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x3F",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ]
+    },
+    {
+      "addr": "0x40",
+      "name": "Power_on_sequence_Config_0",
+      "full": "Power-on sequence Configuration 0",
+      "cat": "Sequence",
+      "default": "0x89",
+      "type": "RWPE",
+      "desc": "Power-On Sequence Configuration 0",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "SEQ_EN",
+          "desc": "PMIC Power-On Sequence Config0: 0 = Do Not Execute Config0, 1 = Execute Config0",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "A_EN",
+          "desc": "Enable Switch Node A Output Regulator: 0 = Disable, 1 = Enable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "5",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "4",
+          "name": "B_EN",
+          "desc": "Enable Switch Node B Output Regulator: 0 = Disable, 1 = Enable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3",
+          "name": "C_EN",
+          "desc": "Enable Switch Node C Output Regulator: 0 = Disable, 1 = Enable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2:0",
+          "name": "IDLE_TIME",
+          "desc": "Idle Time After Power-On Sequence Config0",
+          "type": "Time",
+          "enum": {
+            "0": "0ms",
+            "1": "2ms",
+            "2": "4ms",
+            "3": "6ms",
+            "4": "8ms",
+            "5": "10ms",
+            "6": "12ms",
+            "7": "24ms"
+          }
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x41",
+      "name": "Power_on_sequence_Config_1",
+      "full": "Power-on sequence Configuration 1",
+      "cat": "Sequence",
+      "default": "0xD9",
+      "type": "RWPE",
+      "desc": "Power-On Sequence Configuration 1",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "SEQ_EN",
+          "desc": "PMIC Power-On Sequence Config 1: 0 = Do Not Execute Config 1, 1 = Execute Command 1",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "A_EN",
+          "desc": "Enable Switch Node A Output Regulator: 0 = Disable, 1 = Enable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "5",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "4",
+          "name": "B_EN",
+          "desc": "Enable Switch Node B Output Regulator: 0 = Disable, 1 = Enable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3",
+          "name": "C_EN",
+          "desc": "Enable Switch Node C Output Regulator: 0 = Disable, 1 = Enable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2:0",
+          "name": "IDLE_TIME",
+          "desc": "Idle Time After Power-On Sequence Config1",
+          "type": "Time",
+          "enum": {
+            "0": "0ms",
+            "1": "2ms",
+            "2": "4ms",
+            "3": "6ms",
+            "4": "8ms",
+            "5": "10ms",
+            "6": "12ms",
+            "7": "24ms"
+          }
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x42",
+      "name": "Power_on_sequence_Config_2",
+      "full": "Power-on sequence Configuration 2",
+      "cat": "Sequence",
+      "default": "0x00",
+      "type": "RWPE",
+      "desc": "Power-On Sequence Configuration 2",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "SEQ_EN",
+          "desc": "PMIC Power-On Sequence Config2: 0 = Do Not Execute Config2, 1 = Execute Config2",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "A_EN",
+          "desc": "Enable Switch Node A Output Regulator: 0 = Disable, 1 = Enable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "5",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "4",
+          "name": "B_EN",
+          "desc": "Enable Switch Node B Output Regulator: 0 = Disable, 1 = Enable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3",
+          "name": "C_EN",
+          "desc": "Enable Switch Node C Output Regulator: 0 = Disable, 1 = Enable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2:0",
+          "name": "IDLE_TIME",
+          "desc": "Idle time after Power-On Sequence Config2",
+          "type": "Time",
+          "enum": {
+            "0": "0ms",
+            "1": "2ms",
+            "2": "4ms",
+            "3": "6ms",
+            "4": "8ms",
+            "5": "10ms",
+            "6": "12ms",
+            "7": "24ms"
+          }
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x43",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RWPE",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x44",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RWPE",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x45",
+      "name": "DIMM_SWA_Voltage_Threshold",
+      "full": "DIMM_SWA Voltage & Threshold",
+      "cat": "Voltage",
+      "default": "0x78",
+      "type": "RWPE",
+      "desc": "DIMM SWA Voltage Setting",
+      "fields": [
+        {
+          "bits": "7:1",
+          "name": "VOLTAGE_SETTING",
+          "desc": "SWA voltage setting: 800-1435mV in 5mV steps",
+          "type": "Volt"
+        },
+        {
+          "bits": "0",
+          "name": "PGL",
+          "desc": "SWA Power Good Threshold Low-Side Voltage Setting: 0 = -5% from setting, 1 = -7.5% from setting",
+          "type": "Flag",
+          "active": false
+        }
+      ],
+      "special": "SwaVoltage",
+      "prot": true
+    },
+    {
+      "addr": "0x46",
+      "name": "DIMM_SWA_Threshold_Softstop",
+      "full": "DIMM_SWA Threshold & Soft-stop Time",
+      "cat": "Threshold",
+      "default": "0x63",
+      "type": "RWPE",
+      "desc": "DIMM SWA Threshold and Soft-Stop Time",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "PGH",
+          "desc": "SWA Power Good Threshold High-Side Voltage Upper bound level",
+          "type": "Enum",
+          "enum": {
+            "0": "+5% from setting",
+            "1": "+7.5% from setting",
+            "2": "+10% from setting",
+            "3": "+2.5% from setting"
+          }
+        },
+        {
+          "bits": "5:4",
+          "name": "OV",
+          "desc": "SWA Overvoltage Threshold Setting",
+          "type": "Enum",
+          "enum": {
+            "0": "+7.5% from setting",
+            "1": "+10% from setting",
+            "2": "+12.5% from setting",
+            "3": "+5% from setting"
+          }
+        },
+        {
+          "bits": "3:2",
+          "name": "UVLO",
+          "desc": "SWA Undervoltage-Lockout Threshold Setting",
+          "type": "Enum",
+          "enum": {
+            "0": "-10% from setting",
+            "1": "-12.5% from setting",
+            "2": "-5% from setting",
+            "3": "-7.5% from setting"
+          }
+        },
+        {
+          "bits": "1:0",
+          "name": "SOFT_STOP_TIME",
+          "desc": "SWA Output Regulator Soft-Stop Time After VR Disable",
+          "type": "Time",
+          "enum": {
+            "0": "0.5ms",
+            "1": "1ms",
+            "2": "2ms",
+            "3": "4ms"
+          }
+        }
+      ],
+      "special": "SwaThreshold",
+      "prot": true
+    },
+    {
+      "addr": "0x47",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RWPE",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x48",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RWPE",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x49",
+      "name": "DIMM_SWB_Voltage_Threshold",
+      "full": "DIMM_SWB Voltage & Threshold",
+      "cat": "Voltage",
+      "default": "0x78",
+      "type": "RWPE",
+      "desc": "DIMM SWB Voltage Setting",
+      "fields": [
+        {
+          "bits": "7:1",
+          "name": "VOLTAGE_SETTING",
+          "desc": "SWB voltage setting: 800-1435mV in 5mV steps",
+          "type": "Volt"
+        },
+        {
+          "bits": "0",
+          "name": "PGL",
+          "desc": "SWB Power Good Threshold Low-Side Voltage Setting: 0 = -5% from setting, 1 = -7.5% from setting",
+          "type": "Flag",
+          "active": false
+        }
+      ],
+      "special": "SwbVoltage",
+      "prot": true
+    },
+    {
+      "addr": "0x4A",
+      "name": "DIMM_SWB_Threshold_Softstop",
+      "full": "DIMM_SWB Threshold & Soft-stop Time",
+      "cat": "Threshold",
+      "default": "0x63",
+      "type": "RWPE",
+      "desc": "DIMM SWB Threshold, Soft-stop Time",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "PGH",
+          "desc": "SWB Power Good Threshold High-Side Voltage Upper bound level",
+          "type": "Enum",
+          "enum": {
+            "0": "+5% from setting",
+            "1": "+7.5% from setting",
+            "2": "+10% from setting",
+            "3": "+2.5% from setting"
+          }
+        },
+        {
+          "bits": "5:4",
+          "name": "OV",
+          "desc": "SWB Overvoltage Threshold Setting",
+          "type": "Enum",
+          "enum": {
+            "0": "+7.5% from setting",
+            "1": "+10% from setting",
+            "2": "+12.5% from setting",
+            "3": "+5% from setting"
+          }
+        },
+        {
+          "bits": "3:2",
+          "name": "UVLO",
+          "desc": "SWB Undervoltage-Lockout Threshold Setting",
+          "type": "Enum",
+          "enum": {
+            "0": "-10% from setting",
+            "1": "-12.5% from setting",
+            "2": "-5% from setting",
+            "3": "-7.5% from setting"
+          }
+        },
+        {
+          "bits": "1:0",
+          "name": "SOFT_STOP_TIME",
+          "desc": "SWB Output Regulator Soft-Stop Time After VR Disable",
+          "type": "Time",
+          "enum": {
+            "0": "0.5ms",
+            "1": "1ms",
+            "2": "2ms",
+            "3": "4ms"
+          }
+        }
+      ],
+      "special": "SwbThreshold",
+      "prot": true
+    },
+    {
+      "addr": "0x4B",
+      "name": "DIMM_SWC_Voltage_Threshold",
+      "full": "DIMM_SWC Voltage & Threshold",
+      "cat": "Voltage",
+      "default": "0x78",
+      "type": "RWPE",
+      "desc": "DIMM SWC Voltage Setting",
+      "fields": [
+        {
+          "bits": "7:1",
+          "name": "VOLTAGE_SETTING",
+          "desc": "SWC voltage setting: 1500-2135mV in 5mV steps",
+          "type": "Volt"
+        },
+        {
+          "bits": "0",
+          "name": "PGL",
+          "desc": "SWC Power Good Threshold Low-Side Voltage Setting: 0 = -5% from setting, 1 = -7.5% from setting",
+          "type": "Flag",
+          "active": false
+        }
+      ],
+      "special": "SwcVoltage",
+      "prot": true
+    },
+    {
+      "addr": "0x4C",
+      "name": "DIMM_SWC_Threshold_Softstop",
+      "full": "DIMM_SWC Threshold & Soft-stop Time",
+      "cat": "Threshold",
+      "default": "0x63",
+      "type": "RWPE",
+      "desc": "DIMM SWC Threshold, Soft-Stop Time",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "PGH",
+          "desc": "SWC Power Good Threshold High-Side Voltage Upper bound level",
+          "type": "Enum",
+          "enum": {
+            "0": "+5% from setting",
+            "1": "+7.5% from setting",
+            "2": "+10% from setting",
+            "3": "+2.5% from setting"
+          }
+        },
+        {
+          "bits": "5:4",
+          "name": "OV",
+          "desc": "SWC Overvoltage Threshold Setting",
+          "type": "Enum",
+          "enum": {
+            "0": "+7.5% from setting",
+            "1": "+10% from setting",
+            "2": "+12.5% from setting",
+            "3": "+5% from setting"
+          }
+        },
+        {
+          "bits": "3:2",
+          "name": "UVLO",
+          "desc": "SWC Undervoltage-Lockout Threshold Setting",
+          "type": "Enum",
+          "enum": {
+            "0": "-10% from setting",
+            "1": "-12.5% from setting",
+            "2": "-5% from setting",
+            "3": "-7.5% from setting"
+          }
+        },
+        {
+          "bits": "1:0",
+          "name": "SOFT_STOP_TIME",
+          "desc": "SWC Output Regulator Soft-Stop Time After VR Disable",
+          "type": "Time",
+          "enum": {
+            "0": "1ms",
+            "1": "2ms",
+            "2": "4ms",
+            "3": "8ms"
+          }
+        }
+      ],
+      "special": "SwcThreshold",
+      "prot": true
+    },
+    {
+      "addr": "0x4D",
+      "name": "DIMM_FSW_Mode_1",
+      "full": "DIMM_FSW & Mode_1",
+      "cat": "Switching",
+      "default": "0x80",
+      "type": "RWPE",
+      "desc": "DIMM FSW & Mode_1",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "A_MODE_SEL",
+          "desc": "SWA Output Regulator Mode Selection",
+          "type": "Enum",
+          "enum": {
+            "0": "Reserved",
+            "1": "Reserved",
+            "2": "COT; DCM (Constant on Time; Discontinuous Current Mode)",
+            "3": "COT; CCM (Constant on Time; Continuous Current Mode)"
+          }
+        },
+        {
+          "bits": "5:4",
+          "name": "A_FSW",
+          "desc": "SWA Output Regulator Switching Frequency",
+          "type": "Freq",
+          "enum": {
+            "0": "750kHz",
+            "1": "1000kHz",
+            "2": "1250kHz",
+            "3": "1500kHz"
+          }
+        },
+        {
+          "bits": "3:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ],
+      "special": "FswMode1",
+      "prot": true
+    },
+    {
+      "addr": "0x4E",
+      "name": "DIMM_FSW_Mode_2",
+      "full": "DIMM_FSW & Mode_2",
+      "cat": "Switching",
+      "default": "0x88",
+      "type": "RWPE",
+      "desc": "DIMM FSW & Mode_2",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "B_MODE_SEL",
+          "desc": "SWB Output Regulator Mode Selection",
+          "type": "Enum",
+          "enum": {
+            "0": "Reserved",
+            "1": "Reserved",
+            "2": "COT; DCM (Constant on Time; Discontinuous Current Mode)",
+            "3": "COT; CCM (Constant on Time; Continuous Current Mode)"
+          }
+        },
+        {
+          "bits": "5:4",
+          "name": "B_FSW",
+          "desc": "SWB Output Regulator Switching Frequency",
+          "type": "Freq",
+          "enum": {
+            "0": "750kHz",
+            "1": "1000kHz",
+            "2": "1250kHz",
+            "3": "1500kHz"
+          }
+        },
+        {
+          "bits": "3:2",
+          "name": "C_MODE_SEL",
+          "desc": "SWC Output Regulator Mode Selection",
+          "type": "Enum",
+          "enum": {
+            "0": "Reserved",
+            "1": "Reserved",
+            "2": "COT; DCM (Constant on Time; Discontinuous Current Mode)",
+            "3": "COT; CCM (Constant on Time; Continuous Current Mode)"
+          }
+        },
+        {
+          "bits": "1:0",
+          "name": "C_FSW",
+          "desc": "SWC Output Regulator Switching Frequency",
+          "type": "Freq",
+          "enum": {
+            "0": "750kHz",
+            "1": "1000kHz",
+            "2": "1250kHz",
+            "3": "1500kHz"
+          }
+        }
+      ],
+      "special": "FswMode2",
+      "prot": true
+    },
+    {
+      "addr": "0x4F",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RWPE",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:1",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        },
+        {
+          "bits": "0",
+          "name": "SWA_SWB_PHASE_MODE_SELECT",
+          "desc": "Switch Node A and Switch Node B Phase Regulator Mode Selection: 0 = Single Phase Regulator Mode, 1 = Dual Phase Regulator Mode",
+          "type": "Flag",
+          "active": true
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x50",
+      "name": "DIMM_OC_Threshold",
+      "full": "DIMM_OC Threshold",
+      "cat": "Threshold",
+      "default": "0xCF",
+      "type": "RWPE",
+      "desc": "DIMM OC Threshold",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "A_OC",
+          "desc": "SWA Output Current Limiter Warning Threshold Setting For COT Mode, Ivalley_limit",
+          "type": "Enum",
+          "enum": {
+            "0": "3.0A",
+            "1": "3.5A",
+            "2": "4.0A",
+            "3": "4.5A"
+          }
+        },
+        {
+          "bits": "5:4",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        },
+        {
+          "bits": "3:2",
+          "name": "B_OC",
+          "desc": "SWB Output Current Limiter Warning Threshold Setting For COT Mode, Ivalley_limit",
+          "type": "Enum",
+          "enum": {
+            "0": "3.0A",
+            "1": "3.5A",
+            "2": "4.0A",
+            "3": "4.5A"
+          }
+        },
+        {
+          "bits": "1:0",
+          "name": "C_OC",
+          "desc": "SWC Output Current Limiter Warning Threshold Setting For COT Mode, Ivalley_limit",
+          "type": "Enum",
+          "enum": {
+            "0": "0.5A",
+            "1": "1.0A",
+            "2": "1.5A",
+            "3": "2.0A"
+          }
+        }
+      ],
+      "special": "OcThreshold",
+      "prot": true
+    },
+    {
+      "addr": "0x51",
+      "name": "DIMM_Buck_LDO_Output_Voltage_Range",
+      "full": "DIMM_Buck & LDO Output Voltage Range",
+      "cat": "Voltage",
+      "default": "0x42",
+      "type": "RWPE",
+      "desc": "DIMM Buck and LDO Output Voltage Range",
+      "fields": [
+        {
+          "bits": "7:6",
+          "name": "LDO_1.8V_VOLTAGE",
+          "desc": "VOUT 1.8 V LDO Output Voltage Setting1",
+          "type": "Enum",
+          "enum": {
+            "0": "1.7V",
+            "1": "1.8V",
+            "2": "1.9V",
+            "3": "2.0V"
+          }
+        },
+        {
+          "bits": "5:3",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        },
+        {
+          "bits": "2:1",
+          "name": "LDO_1.0V_VOLTAGE",
+          "desc": "VOUT 1.0 V LDO Voltage Setting",
+          "type": "Enum",
+          "enum": {
+            "0": "0.9V",
+            "1": "1.0V",
+            "2": "1.1V",
+            "3": "1.2V"
+          }
+        },
+        {
+          "bits": "0",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        }
+      ],
+      "special": "LdoVoltage",
+      "prot": true
+    },
+    {
+      "addr": "0x52",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x53",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x54",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x55",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x56",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x57",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x58",
+      "name": "Power_off_sequence_Config_0",
+      "full": "Power-off sequence Configuration 0",
+      "cat": "Sequence",
+      "default": "0xD1",
+      "type": "RWPE",
+      "desc": "Power-Off Sequence Configuration 0",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "SEQ_EN",
+          "desc": "PMIC Power-Off Sequence Config0: 0 = Do Not Execute Config0, 1 = Execute Config0",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "A_DIS",
+          "desc": "Disable Switch Node A Output Regulator: 0 = Do Not Disable, 1 = Disable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "5",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "4",
+          "name": "B_DIS",
+          "desc": "Disable Switch Node B Output Regulator: 0 = Do Not Disable, 1 = Disable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3",
+          "name": "C_DIS",
+          "desc": "Disable Switch Node C Output Regulator: 0 = Do Not Disable, 1 = Disable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2:0",
+          "name": "IDLE_TIME",
+          "desc": "Idle Time After Power-Off Sequence Config0",
+          "type": "Time",
+          "enum": {
+            "0": "0ms",
+            "1": "1ms",
+            "2": "2ms",
+            "3": "3ms",
+            "4": "4ms",
+            "5": "5ms",
+            "6": "6ms",
+            "7": "7ms"
+          }
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x59",
+      "name": "Power_off_sequence_Config_1",
+      "full": "Power-off sequence Configuration 1",
+      "cat": "Sequence",
+      "default": "0xD9",
+      "type": "RWPE",
+      "desc": "Power-Off Sequence Configuration 1",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "SEQ_EN",
+          "desc": "PMIC Power-Off Sequence Config1: 0 = Do Not Execute Config1, 1 = Execute Config1",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "A_DIS",
+          "desc": "Disable Switch Node A Output Regulator: 0 = Do Not Disable, 1 = Disable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "5",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "4",
+          "name": "B_DIS",
+          "desc": "Disable Switch Node B Output Regulator: 0 = Do Not Disable, 1 = Disable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3",
+          "name": "C_DIS",
+          "desc": "Disable Switch Node C Output Regulator: 0 = Do Not Disable, 1 = Disable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2:0",
+          "name": "IDLE_TIME",
+          "desc": "Idle Time After Power-Off Sequence Config1",
+          "type": "Time",
+          "enum": {
+            "0": "0ms",
+            "1": "1ms",
+            "2": "2ms",
+            "3": "3ms",
+            "4": "4ms",
+            "5": "5ms",
+            "6": "6ms",
+            "7": "7ms"
+          }
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x5A",
+      "name": "Power_off_sequence_Config_2",
+      "full": "Power-off sequence Configuration 2",
+      "cat": "Sequence",
+      "default": "0x00",
+      "type": "RWPE",
+      "desc": "Power-Off Sequence Configuration 2",
+      "fields": [
+        {
+          "bits": "7",
+          "name": "SEQ_EN",
+          "desc": "PMIC Power-Off Sequence Config2: 0 = Do Not Execute Config2, 1 = Execute Config2",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "6",
+          "name": "A_DIS",
+          "desc": "Disable Switch Node A Output Regulator: 0 = Do Not Disable, 1 = Disable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "5",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "4",
+          "name": "B_DIS",
+          "desc": "Disable Switch Node B Output Regulator: 0 = Do Not Disable, 1 = Disable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "3",
+          "name": "C_DIS",
+          "desc": "Disable Switch Node C Output Regulator: 0 = Do Not Disable, 1 = Disable",
+          "type": "Flag",
+          "active": true
+        },
+        {
+          "bits": "2:0",
+          "name": "IDLE_TIME",
+          "desc": "Idle Time After Power-Off Sequence Config2",
+          "type": "Time",
+          "enum": {
+            "0": "0ms",
+            "1": "1ms",
+            "2": "2ms",
+            "3": "3ms",
+            "4": "4ms",
+            "5": "5ms",
+            "6": "6ms",
+            "7": "7ms"
+          }
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x5B",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x5C",
+      "name": "Reserved",
+      "full": "Reserved",
+      "cat": "Reserved",
+      "default": "0x00",
+      "type": "RV",
+      "desc": "Reserved register",
+      "fields": [
+        {
+          "bits": "7:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ],
+      "prot": true
+    },
+    {
+      "addr": "0x5D",
+      "name": "DIMM_Soft_start_Time_1",
+      "full": "DIMM_Soft-Start Time_1",
+      "cat": "Timing",
+      "default": "0x20",
+      "type": "RWPE",
+      "desc": "DIMM Soft-Start Time_1",
+      "fields": [
+        {
+          "bits": "7:5",
+          "name": "A_SOFT_START_TIME",
+          "desc": "SWA Output Regulator Soft-Start Time After VR Enable",
+          "type": "Time",
+          "enum": {
+            "0": "1ms",
+            "1": "2ms",
+            "2": "4ms",
+            "3": "6ms",
+            "4": "8ms",
+            "5": "10ms",
+            "6": "12ms",
+            "7": "14ms"
+          }
+        },
+        {
+          "bits": "4:0",
+          "name": "RESERVED",
+          "desc": "Reserved bits",
+          "type": "Raw"
+        }
+      ],
+      "special": "SoftStart1",
+      "prot": true
+    },
+    {
+      "addr": "0x5E",
+      "name": "DIMM_Soft_start_Time_2",
+      "full": "DIMM_Soft-Start Time_2",
+      "cat": "Timing",
+      "default": "0x22",
+      "type": "RWPE",
+      "desc": "DIMM Soft-Start Time_2",
+      "fields": [
+        {
+          "bits": "7:5",
+          "name": "B_SOFT_START_TIME",
+          "desc": "SWB Output Regulator Soft-Start Time After VR Enable",
+          "type": "Time",
+          "enum": {
+            "0": "1ms",
+            "1": "2ms",
+            "2": "4ms",
+            "3": "6ms",
+            "4": "8ms",
+            "5": "10ms",
+            "6": "12ms",
+            "7": "14ms"
+          }
+        },
+        {
+          "bits": "4",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        },
+        {
+          "bits": "3:1",
+          "name": "C_SOFT_START_TIME",
+          "desc": "SWC Output Regulator Soft-Start Time After VR Enable",
+          "type": "Time",
+          "enum": {
+            "0": "1ms",
+            "1": "2ms",
+            "2": "4ms",
+            "3": "6ms",
+            "4": "8ms",
+            "5": "10ms",
+            "6": "12ms",
+            "7": "14ms"
+          }
+        },
+        {
+          "bits": "0",
+          "name": "RESERVED",
+          "desc": "Reserved bit",
+          "type": "Raw"
+        }
+      ],
+      "special": "SoftStart2",
+      "prot": true
+    }
+  ]
+}
