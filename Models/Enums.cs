@@ -1,6 +1,8 @@
 ﻿namespace PMICDumpParser.Models
 {
-    // Register Types (from Excel)
+    /// <summary>
+    /// Register access types from PMIC datasheet
+    /// </summary>
     public enum RegType
     {
         RO,     // Read Only
@@ -12,7 +14,9 @@
         RV      // Reserved
     }
 
-    // Field Types for decoding
+    /// <summary>
+    /// Field types for decoding register values
+    /// </summary>
     public enum FieldType
     {
         Reserved,
@@ -29,7 +33,9 @@
         Temp
     }
 
-    // Register Categories
+    /// <summary>
+    /// Categories for organizing registers
+    /// </summary>
     public enum RegCategory
     {
         Reserved,

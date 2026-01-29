@@ -1,12 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
 namespace PMICDumpParser
 {
+    /// <summary>
+    /// Main entry point for the PMIC Dump Parser application
+    /// </summary>
     internal static class Program
     {
         /// <summary>
@@ -15,30 +14,53 @@ namespace PMICDumpParser
         [STAThread]
         static void Main()
         {
+            // Enable visual styles for modern UI
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
 
-            // Global exception handling
+            // Set application-wide exception handling
             Application.SetUnhandledExceptionMode(UnhandledExceptionMode.CatchException);
-            Application.ThreadException += Application_ThreadException;
-            AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
+            Application.ThreadException += (sender, e) => HandleException(e.Exception);
+            AppDomain.CurrentDomain.UnhandledException += (sender, e) =>
+                HandleException(e.ExceptionObject as Exception);
 
-            // Run application
-            Application.Run(new MainForm());
-        }
-
-        private static void Application_ThreadException(object sender, ThreadExceptionEventArgs e)
-        {
-            MessageBox.Show($"An error occurred:\n\n{e.Exception.Message}\n\n{e.Exception.StackTrace}",
-                "Application Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-        }
-
-        private static void CurrentDomain_UnhandledException(object sender, UnhandledExceptionEventArgs e)
-        {
-            if (e.ExceptionObject is Exception ex)
+            try
             {
-                MessageBox.Show($"An unexpected error occurred:\n\n{ex.Message}\n\n{ex.StackTrace}",
-                    "Application Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                // Create and run the main form
+                using (var mainForm = new MainForm())
+                {
+                    Application.Run(mainForm);
+                }
+            }
+            catch (Exception ex)
+            {
+                HandleException(ex);
+            }
+        }
+
+        /// <summary>
+        /// Handles uncaught exceptions by displaying an error message
+        /// </summary>
+        /// <param name="ex">The exception to handle</param>
+        private static void HandleException(Exception ex)
+        {
+            if (ex == null) return;
+
+            string errorMessage = $"An unexpected error occurred:\n\n{ex.Message}\n\n" +
+                                 $"Stack Trace:\n{ex.StackTrace}";
+
+            MessageBox.Show(errorMessage, "Application Error",
+                MessageBoxButtons.OK, MessageBoxIcon.Error);
+
+            // Log to file if needed
+            try
+            {
+                System.IO.File.AppendAllText("error.log",
+                    $"[{DateTime.Now:yyyy-MM-dd HH:mm:ss}] {ex}\n\n");
+            }
+            catch
+            {
+                // Ignore file logging errors
             }
         }
     }

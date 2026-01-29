@@ -1,5 +1,4 @@
-﻿using PMICDumpParser.Models;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
@@ -7,38 +6,47 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using PMICDumpParser.Models;
+using PMICDumpParser.Services;
+using PMICDumpParser.UI.Controls;
 
 namespace PMICDumpParser
 {
+    /// <summary>
+    /// Main application form for PMIC Dump Parser
+    /// Provides a comprehensive interface for analyzing PMIC register dumps
+    /// </summary>
     public partial class MainForm : Form
     {
-        private PmicDump? _currentDump;
-        private readonly Dictionary<string, ListView> _categoryListViews = new();
-        private readonly Dictionary<string, List<ParsedRegister>> _categoryRegisters = new();
-        private CancellationTokenSource? _loadCancellationTokenSource;
+        #region Fields
+
+        private PmicDump _currentDump;
+        private readonly Dictionary<string, ListView> _categoryListViews = new Dictionary<string, ListView>();
+        private readonly Dictionary<string, List<ParsedRegister>> _categoryRegisters = new Dictionary<string, List<ParsedRegister>>();
+        private CancellationTokenSource _loadCancellationTokenSource;
 
         // UI Controls
-        private ToolStripStatusLabel _statusLabel = null!;
-        private ToolStripStatusLabel _fileInfoLabel = null!;
-        private ToolStripStatusLabel _regCountLabel = null!;
-        private ToolStripProgressBar _progressBar = null!;
-        private TabControl _tabControl = null!;
-        private ListView _detailedListView = null!;
-        private TreeView _categoryTreeView = null!;
-        private TableLayoutPanel _summaryGrid = null!;
-        private Panel _summaryStatsPanel = null!;
-        private PropertyGrid _detailPropertyGrid = null!;
-        private ToolStripTextBox _searchBox = null!;
-        private ToolStripButton _btnChangedOnly = null!;
-        private ToolStripButton _btnProtectedOnly = null!;
-        private ToolStripButton _btnResetFilter = null!;
+        private ToolStripStatusLabel _statusLabel;
+        private ToolStripStatusLabel _fileInfoLabel;
+        private ToolStripStatusLabel _regCountLabel;
+        private ToolStripProgressBar _progressBar;
+        private TabControl _tabControl;
+        private RegisterListView _detailedListView;
+        private TreeView _categoryTreeView;
+        private TableLayoutPanel _summaryGrid;
+        private Panel _summaryStatsPanel;
+        private PropertyGrid _detailPropertyGrid;
+        private ToolStripTextBox _searchBox;
+        private ToolStripButton _btnChangedOnly;
+        private ToolStripButton _btnProtectedOnly;
+        private ToolStripButton _btnResetFilter;
 
         // Statistics labels
-        private Label _statTotal = null!;
-        private Label _statChanged = null!;
-        private Label _statProtected = null!;
-        private Label _statCritical = null!;
-        private Label _statChangedPercent = null!;
+        private Label _statTotal;
+        private Label _statChanged;
+        private Label _statProtected;
+        private Label _statCritical;
+        private Label _statChangedPercent;
 
         // Professional color scheme
         private readonly Color _changedColor = Color.FromArgb(220, 240, 255);  // Light blue
@@ -53,33 +61,765 @@ namespace PMICDumpParser
         private const double CRITICAL_THRESHOLD_PERCENT = 23.0;
         private const double MAX_VOLTAGE_RANGE = 440.0; // Based on voltage register range
 
+        #endregion
+
+        #region Constructor
+
+        /// <summary>
+        /// Initializes a new instance of the MainForm class
+        /// </summary>
         public MainForm()
         {
             InitializeComponent();
-            _ = InitializeRegisterLoaderAsync();
+
+            // Initialize the application asynchronously without blocking the constructor
+            this.Load += async (sender, e) => await InitializeApplicationAsync();
         }
 
-        private void cellPanel_MouseEnter(Panel cellPanel, EventArgs e)
+        #endregion
+
+        #region Initialization Methods
+
+        /// <summary>
+        /// Asynchronously initializes the application by loading register definitions
+        /// </summary>
+        private async Task InitializeApplicationAsync()
         {
-            if (cellPanel.BackColor != _selectedGridColor)
+            try
             {
-                Color originalColor = cellPanel.BackColor;
-                cellPanel.BackColor = Color.FromArgb(
-                    Math.Max(originalColor.R - 20, 0),
-                    Math.Max(originalColor.G - 20, 0),
-                    Math.Max(originalColor.B - 20, 0)
-                );
+                // Make sure we're on the UI thread when showing progress
+                if (InvokeRequired)
+                {
+                    Invoke(new Action(() => ShowProgress("Loading register definitions...", 0)));
+                }
+                else
+                {
+                    ShowProgress("Loading register definitions...", 0);
+                }
+
+                await RegisterLoaderService.LoadAsync().ConfigureAwait(false);
+
+                // Update status on UI thread
+                if (InvokeRequired)
+                {
+                    Invoke(new Action(() =>
+                    {
+                        UpdateStatus("Register definitions loaded successfully");
+                        HideProgress();
+                    }));
+                }
+                else
+                {
+                    UpdateStatus("Register definitions loaded successfully");
+                    HideProgress();
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle error on UI thread
+                if (InvokeRequired)
+                {
+                    Invoke(new Action(() =>
+                    {
+                        HideProgress();
+                        MessageBox.Show($"Failed to load register definitions: {ex.Message}", "Initialization Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }));
+                }
+                else
+                {
+                    HideProgress();
+                    MessageBox.Show($"Failed to load register definitions: {ex.Message}", "Initialization Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                }
             }
         }
 
-        private void cellPanel_MouseLeave(Panel cellPanel, EventArgs e)
+        #endregion
+
+        #region UI Event Handlers
+
+        private async void OnOpenDump(object sender, EventArgs e)
         {
-            if (cellPanel.BackColor != _selectedGridColor)
+            using (var dialog = new OpenFileDialog
             {
-                UpdateGridCellColor(cellPanel, (byte)cellPanel.Tag);
+                Filter = "PMIC Dump Files (*.bin)|*.bin|All files (*.*)|*.*",
+                Title = "Open PMIC Dump File",
+                Multiselect = false
+            })
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    await LoadDumpFileAsync(dialog.FileName);
+                }
             }
         }
 
+        private void OnSearchTextChanged(object sender, EventArgs e)
+        {
+            if (_currentDump != null)
+            {
+                _detailedListView.SearchText = _searchBox.Text;
+                _detailedListView.ApplyFilters();
+            }
+        }
+
+        private void OnSearchEnter(object sender, EventArgs e)
+        {
+            if (_searchBox.Text == "Search...")
+            {
+                _searchBox.Text = "";
+                _searchBox.ForeColor = Color.Black;
+            }
+        }
+
+        private void OnSearchLeave(object sender, EventArgs e)
+        {
+            if (string.IsNullOrWhiteSpace(_searchBox.Text))
+            {
+                _searchBox.Text = "Search...";
+                _searchBox.ForeColor = Color.Gray;
+            }
+        }
+
+        private void OnToggleChangedFilter(object sender, EventArgs e)
+        {
+            _detailedListView.ShowChangedOnly = _btnChangedOnly.Checked;
+            _detailedListView.ApplyFilters();
+        }
+
+        private void OnToggleProtectedFilter(object sender, EventArgs e)
+        {
+            _detailedListView.ShowProtectedOnly = _btnProtectedOnly.Checked;
+            _detailedListView.ApplyFilters();
+        }
+
+        private void OnResetFilter(object sender, EventArgs e)
+        {
+            _btnChangedOnly.Checked = false;
+            _btnProtectedOnly.Checked = false;
+            _searchBox.Text = "Search...";
+            _searchBox.ForeColor = Color.Gray;
+
+            if (_currentDump != null)
+            {
+                _detailedListView.ShowChangedOnly = false;
+                _detailedListView.ShowProtectedOnly = false;
+                _detailedListView.SearchText = string.Empty;
+                _detailedListView.ApplyFilters();
+            }
+        }
+
+        private async void OnReloadDefinitions(object sender, EventArgs e)
+        {
+            try
+            {
+                ShowProgress("Reloading register definitions...", 0);
+                RegisterLoaderService.ResetCache();
+                await RegisterLoaderService.LoadAsync().ConfigureAwait(false);
+                HideProgress();
+
+                if (_currentDump != null)
+                {
+                    await LoadDumpFileAsync(_currentDump.FilePath);
+                    MessageBox.Show("Register definitions reloaded successfully!", "Reload Complete");
+                }
+                else
+                {
+                    MessageBox.Show("Register definitions reloaded. Load a dump file to apply changes.", "Reload Complete");
+                }
+            }
+            catch (Exception ex)
+            {
+                HideProgress();
+                MessageBox.Show($"Error reloading definitions: {ex.Message}", "Error");
+            }
+        }
+
+        private void OnExportCsv(object sender, EventArgs e)
+        {
+            if (_currentDump == null)
+            {
+                MessageBox.Show("No dump loaded", "Info");
+                return;
+            }
+
+            var saveDialog = new SaveFileDialog
+            {
+                Filter = "CSV files (*.csv)|*.csv",
+                FileName = $"PMIC_Dump_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
+            };
+
+            if (saveDialog.ShowDialog() == DialogResult.OK)
+            {
+                try
+                {
+                    ExportToCsv(saveDialog.FileName);
+                    UpdateStatus($"Exported to CSV: {Path.GetFileName(saveDialog.FileName)}");
+                }
+                catch (Exception ex)
+                {
+                    MessageBox.Show($"Error exporting CSV: {ex.Message}", "Error");
+                }
+            }
+        }
+
+        private async void OnSaveReport(object sender, EventArgs e)
+        {
+            if (_currentDump == null)
+            {
+                MessageBox.Show("No dump loaded", "Info");
+                return;
+            }
+
+            using (var dialog = new SaveFileDialog
+            {
+                Filter = "Text files (*.txt)|*.txt|CSV files (*.csv)|*.csv",
+                FileName = $"PMIC_Dump_{DateTime.Now:yyyyMMdd_HHmmss}.txt"
+            })
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        ShowProgress("Generating report...", 0);
+                        var report = DumpParserService.GenerateReport(_currentDump);
+                        await FileHelper.WriteTextAsync(dialog.FileName, report).ConfigureAwait(false);
+                        HideProgress();
+                        MessageBox.Show($"Report saved to {dialog.FileName}", "Success");
+                    }
+                    catch (Exception ex)
+                    {
+                        HideProgress();
+                        MessageBox.Show($"Error saving report: {ex.Message}", "Error");
+                    }
+                }
+            }
+        }
+
+        private void OnUserGuide(object sender, EventArgs e)
+        {
+            MessageBox.Show("PMIC Dump Parser User Guide\n\n1. Open a PMIC dump file (.bin)\n2. View registers in different tabs\n3. Double-click any register for detailed view\n4. Use filters and search to find specific registers\n5. Export reports as needed", "User Guide");
+        }
+
+        private void OnAbout(object sender, EventArgs e)
+        {
+            MessageBox.Show("PMIC Dump Parser v1.0\n\nA tool for analyzing PMIC register dumps\nSupports RTQ5132 and compatible PMICs\n\n© 2024 PMIC Tools", "About");
+        }
+
+        private void OnColumnClick(object sender, ColumnClickEventArgs e)
+        {
+            // Sorting is handled by the custom RegisterListView control
+        }
+
+        private void OnCategorySelected(object sender, TreeViewEventArgs e)
+        {
+            if (e.Node.Tag is ParsedRegister reg)
+            {
+                UpdateDetailPanel(reg);
+                if (_categoryListViews.TryGetValue("Category", out var listView))
+                {
+                    foreach (ListViewItem item in listView.Items)
+                    {
+                        if (item.Tag == reg)
+                        {
+                            item.Selected = true;
+                            item.EnsureVisible();
+                            break;
+                        }
+                    }
+                }
+            }
+            else if (e.Node.Tag is string category && _categoryRegisters.TryGetValue(category, out var registers))
+            {
+                if (_categoryListViews.TryGetValue("Category", out var listView))
+                {
+                    listView.BeginUpdate();
+                    listView.Items.Clear();
+
+                    foreach (var categoryReg in registers.OrderBy(r => r.Address))
+                    {
+                        var item = new ListViewItem(categoryReg.AddrHex);
+                        item.SubItems.Add(categoryReg.Name);
+                        item.SubItems.Add(categoryReg.ValHex);
+                        item.SubItems.Add(categoryReg.DefaultHex);
+                        item.SubItems.Add(categoryReg.IsChanged ? "CHANGED" : "DEFAULT");
+                        item.SubItems.Add(categoryReg.DecodedValue);
+                        item.Tag = categoryReg;
+
+                        if (categoryReg.IsChanged)
+                            item.BackColor = _changedColor;
+                        else if (categoryReg.Definition.Protected == true)
+                            item.BackColor = _protectedColor;
+
+                        listView.Items.Add(item);
+                    }
+
+                    listView.EndUpdate();
+                    AutoSizeCategoryListViewColumns(listView);
+                }
+            }
+        }
+
+        private void OnCategoryNodeDoubleClick(TreeNode node)
+        {
+            if (node.Tag is ParsedRegister reg)
+            {
+                ShowRegisterDetails(reg);
+            }
+        }
+
+        #endregion
+
+        #region Core Business Logic
+
+        /// <summary>
+        /// Loads and parses a PMIC dump file asynchronously
+        /// </summary>
+        /// <param name="filePath">Path to the dump file</param>
+        private async Task LoadDumpFileAsync(string filePath)
+        {
+            _loadCancellationTokenSource?.Cancel();
+            _loadCancellationTokenSource = new CancellationTokenSource();
+
+            try
+            {
+                // Show progress on UI thread
+                if (InvokeRequired)
+                {
+                    Invoke(new Action(() => ShowProgress("Loading dump file...", 0)));
+                }
+                else
+                {
+                    ShowProgress("Loading dump file...", 0);
+                }
+
+                _currentDump = await DumpParserService.ParseAsync(filePath).ConfigureAwait(false);
+
+                // Update UI on the UI thread
+                if (InvokeRequired)
+                {
+                    Invoke(new Action(() =>
+                    {
+                        UpdateAllViews();
+                        UpdateStatusBar();
+                        UpdateStatus($"Loaded: {Path.GetFileName(filePath)}");
+                        HideProgress();
+                    }));
+                }
+                else
+                {
+                    UpdateAllViews();
+                    UpdateStatusBar();
+                    UpdateStatus($"Loaded: {Path.GetFileName(filePath)}");
+                    HideProgress();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Hide progress on UI thread
+                if (InvokeRequired)
+                {
+                    Invoke(new Action(() =>
+                    {
+                        HideProgress();
+                        UpdateStatus("Load cancelled");
+                    }));
+                }
+                else
+                {
+                    HideProgress();
+                    UpdateStatus("Load cancelled");
+                }
+            }
+            catch (Exception ex)
+            {
+                // Handle error on UI thread
+                if (InvokeRequired)
+                {
+                    Invoke(new Action(() =>
+                    {
+                        HideProgress();
+                        MessageBox.Show($"Error loading dump: {ex.Message}", "Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        UpdateStatus("Error loading file");
+                    }));
+                }
+                else
+                {
+                    HideProgress();
+                    MessageBox.Show($"Error loading dump: {ex.Message}", "Error",
+                        MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    UpdateStatus("Error loading file");
+                }
+            }
+        }
+
+        /// <summary>
+        /// Updates all UI views with current dump data
+        /// </summary>
+        private void UpdateAllViews()
+        {
+            if (_currentDump == null) return;
+            UpdateDetailedListView();
+            UpdateCategoryTree();
+            UpdateSummaryGrid();
+        }
+
+        /// <summary>
+        /// Updates the detailed list view with current dump data
+        /// </summary>
+        private void UpdateDetailedListView()
+        {
+            if (_currentDump == null) return;
+
+            _detailedListView.LoadRegisters(_currentDump.Registers.Values);
+        }
+
+        /// <summary>
+        /// Updates the category tree view with current dump data
+        /// </summary>
+        private void UpdateCategoryTree()
+        {
+            if (_currentDump == null) return;
+
+            _categoryTreeView.BeginUpdate();
+            _categoryTreeView.Nodes.Clear();
+            _categoryRegisters.Clear();
+
+            try
+            {
+                var categories = _currentDump.Registers.Values
+                    .GroupBy(r => r.Category)
+                    .OrderBy(g => g.Key);
+
+                foreach (var category in categories)
+                {
+                    var categoryNode = new TreeNode($"{category.Key} ({category.Count()})")
+                    {
+                        Tag = category.Key
+                    };
+
+                    foreach (var reg in category.OrderBy(r => r.Address))
+                    {
+                        string status = reg.IsChanged ? " [CHANGED]" : "";
+                        string protectedFlag = reg.Definition.Protected == true ? " [PROTECTED]" : "";
+
+                        var regNode = new TreeNode($"{reg.AddrHex}: {reg.Name}{status}{protectedFlag}")
+                        {
+                            Tag = reg
+                        };
+
+                        if (reg.IsChanged && reg.Definition.Protected == false)
+                            regNode.ForeColor = Color.FromArgb(0, 102, 204);
+                        else if (reg.Definition.Protected == true)
+                        {
+                            regNode.ForeColor = Color.FromArgb(153, 102, 0);
+
+                            if (reg.IsChanged == true)
+                                regNode.ForeColor = IsCriticalChange(reg) ? Color.FromArgb(224, 63, 63) : Color.FromArgb(98, 182, 245);
+                        }
+
+                        categoryNode.Nodes.Add(regNode);
+                    }
+
+                    _categoryTreeView.Nodes.Add(categoryNode);
+                    _categoryRegisters[category.Key] = category.ToList();
+                }
+            }
+            finally
+            {
+                _categoryTreeView.EndUpdate();
+            }
+        }
+
+        /// <summary>
+        /// Updates the summary grid with current dump data
+        /// </summary>
+        private void UpdateSummaryGrid()
+        {
+            if (_summaryGrid == null || _currentDump == null) return;
+
+            foreach (Control control in _summaryGrid.Controls)
+            {
+                if (control is Panel cell && cell.Tag is byte address)
+                {
+                    UpdateGridCellColor(cell, address);
+                }
+            }
+
+            UpdateStatistics();
+        }
+
+        /// <summary>
+        /// Updates statistics display with current dump data
+        /// </summary>
+        private void UpdateStatistics()
+        {
+            if (_currentDump == null) return;
+
+            var total = _currentDump.Registers.Count;
+            var changed = _currentDump.Changed.Count;
+            var protectedCount = _currentDump.Protected.Count;
+            var critical = _currentDump.Registers.Values.Count(IsCriticalChange);
+            var changedPercent = total > 0 ? (changed * 100.0 / total) : 0;
+
+            if (_statTotal != null) _statTotal.Text = total.ToString();
+            if (_statChanged != null) _statChanged.Text = changed.ToString();
+            if (_statProtected != null) _statProtected.Text = protectedCount.ToString();
+            if (_statCritical != null) _statCritical.Text = critical.ToString();
+            if (_statChangedPercent != null) _statChangedPercent.Text = $"{changedPercent:F1}%";
+        }
+
+        /// <summary>
+        /// Updates the status bar with file information
+        /// </summary>
+        private void UpdateStatusBar()
+        {
+            if (_currentDump == null)
+            {
+                _fileInfoLabel.Text = string.Empty;
+                _regCountLabel.Text = string.Empty;
+                return;
+            }
+
+            _fileInfoLabel.Text = $"File: {Path.GetFileName(_currentDump.FilePath)} | Loaded: {_currentDump.LoadTime:yyyy-MM-dd HH:mm:ss}";
+            _regCountLabel.Text = $"Total: {_currentDump.Registers.Count} | Changed: {_currentDump.Changed.Count} | Protected: {_currentDump.Protected.Count}";
+        }
+
+        /// <summary>
+        /// Exports current dump to CSV format
+        /// </summary>
+        private void ExportToCsv(string filePath)
+        {
+            var csv = new System.Text.StringBuilder();
+            csv.AppendLine("Address,Name,Full Name,Value,Default,Status,Protected,Category,Decoded Value,Description");
+
+            foreach (var reg in _currentDump.Registers.Values.OrderBy(r => r.Address))
+            {
+                csv.AppendLine($"\"{reg.AddrHex}\",\"{reg.Name}\",\"{reg.FullName}\",\"{reg.ValHex}\",\"{reg.DefaultHex}\",\"{(reg.IsChanged ? "CHANGED" : "DEFAULT")}\",\"{(reg.Definition.Protected == true ? "Yes" : "No")}\",\"{reg.Category}\",\"{reg.DecodedValue}\",\"{reg.Description.Replace("\"", "\"\"")}\"");
+            }
+
+            File.WriteAllText(filePath, csv.ToString());
+        }
+
+        /// <summary>
+        /// Determines if a register change is critical (>23% change for voltage/current registers)
+        /// </summary>
+        /// <param name="reg">The register to check</param>
+        /// <returns>True if the change is critical, false otherwise</returns>
+        private bool IsCriticalChange(ParsedRegister reg)
+        {
+            var name = reg.Name.ToUpper();
+            bool isVoltageReg = name.Contains("VOLT") || name.Contains("SWA_VOLT") ||
+                                name.Contains("SWB_VOLT") || name.Contains("SWC_VOLT");
+            bool isCurrentReg = name.Contains("CURR") || name.Contains("SWA_CURR") ||
+                                name.Contains("SWB_CURR") || name.Contains("SWC_CURR");
+
+            if (!isVoltageReg && !isCurrentReg)
+                return false;
+
+            if (!reg.IsChanged)
+                return false;
+
+            double nominalValue = reg.DefaultValue;
+            if (nominalValue <= 0)
+                return false;
+
+            double currentValue = reg.RawValue;
+            double absoluteChange = Math.Abs(currentValue - nominalValue);
+            double changePercent = (absoluteChange / MAX_VOLTAGE_RANGE) * 100.0;
+
+            return changePercent > CRITICAL_THRESHOLD_PERCENT;
+        }
+
+        #endregion
+
+        #region UI Helper Methods
+
+        /// <summary>
+        /// Shows progress bar with message (thread-safe)
+        /// </summary>
+        private void ShowProgress(string message, int value = 0)
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(() => ShowProgress(message, value)));
+                return;
+            }
+
+            _progressBar.Visible = true;
+            _progressBar.Value = value;
+            UpdateStatus(message);
+        }
+
+        /// <summary>
+        /// Hides the progress bar (thread-safe)
+        /// </summary>
+        private void HideProgress()
+        {
+            if (InvokeRequired)
+            {
+                Invoke(new Action(HideProgress));
+                return;
+            }
+
+            _progressBar.Visible = false;
+        }
+
+        /// <summary>
+        /// Updates the status label text (thread-safe)
+        /// </summary>
+        private void UpdateStatus(string message)
+        {
+            if (InvokeRequired)
+            {
+                BeginInvoke(new Action(() => _statusLabel.Text = message));
+            }
+            else
+            {
+                _statusLabel.Text = message;
+            }
+        }
+
+        /// <summary>
+        /// Handles register selection from list view
+        /// </summary>
+        private void OnRegisterSelected(object sender, EventArgs e)
+        {
+            var selected = _detailedListView.GetSelectedRegister();
+            if (selected != null)
+            {
+                UpdateDetailPanel(selected);
+            }
+        }
+
+        /// <summary>
+        /// Handles register double-click to show details
+        /// </summary>
+        private void OnRegisterDoubleClick(object sender, EventArgs e)
+        {
+            var selected = _detailedListView.GetSelectedRegister();
+            if (selected != null)
+            {
+                ShowRegisterDetails(selected);
+            }
+        }
+
+        /// <summary>
+        /// Shows detailed view for a specific register
+        /// </summary>
+        /// <param name="register">The register to display</param>
+        private void ShowRegisterDetails(ParsedRegister register)
+        {
+            var detailForm = new RegisterDetailForm(register);
+            detailForm.ShowDialog();
+        }
+
+        /// <summary>
+        /// Updates the detail property grid with register information
+        /// </summary>
+        /// <param name="register">The register to display</param>
+        private void UpdateDetailPanel(ParsedRegister register)
+        {
+            var displayObj = new
+            {
+                Address = register.AddrHex,
+                Name = register.Name,
+                FullName = register.FullName,
+                Category = register.Category,
+                Type = $"{register.Definition.Type} {(register.Definition.Protected == true ? "(Protected)" : "")}",
+                RawValue = $"{register.ValHex} ({register.RawValue})",
+                DefaultValue = $"{register.DefaultHex} ({register.DefaultValue})",
+                BinaryValue = Convert.ToString(register.RawValue, 2).PadLeft(8, '0'),
+                Status = register.IsChanged ? "CHANGED FROM DEFAULT" : "AT DEFAULT",
+                DecodedValue = register.DecodedValue,
+                Description = register.Description,
+                Fields = register.Definition.Fields?.Count ?? 0,
+                IsProtected = register.Definition.Protected == true ? "Yes" : "No"
+            };
+
+            _detailPropertyGrid.SelectedObject = displayObj;
+        }
+
+        /// <summary>
+        /// Updates grid cell color based on register status
+        /// </summary>
+        private void UpdateGridCellColor(Panel cell, byte address)
+        {
+            if (_currentDump?.Registers.TryGetValue(address, out var reg) == true)
+            {
+                if (reg.Category == "Reserved" && reg.Name.StartsWith("RESERVED_"))
+                {
+                    cell.BackColor = _defaultGridColor;
+                }
+                else if (reg.IsChanged)
+                {
+                    bool isCritical = IsCriticalChange(reg);
+                    cell.BackColor = isCritical ? _criticalColor : _changedColor;
+                }
+                else if (reg.Definition.Protected == true)
+                {
+                    cell.BackColor = _protectedColor;
+                }
+                else
+                {
+                    cell.BackColor = _unchangedColor;
+                }
+            }
+            else
+            {
+                cell.BackColor = _defaultGridColor;
+            }
+        }
+
+        /// <summary>
+        /// Auto-sizes list view columns for optimal display
+        /// </summary>
+        private void AutoSizeListViewColumns()
+        {
+            if (_detailedListView.Columns.Count == 0 || _detailedListView.ClientSize.Width <= 0)
+                return;
+
+            int totalWidth = _detailedListView.ClientSize.Width;
+            int fixedColumnsWidth = 0;
+
+            for (int i = 0; i < _detailedListView.Columns.Count - 1; i++)
+            {
+                fixedColumnsWidth += _detailedListView.Columns[i].Width;
+            }
+
+            int lastColumnWidth = Math.Max(100, totalWidth - fixedColumnsWidth - 5);
+            _detailedListView.Columns[_detailedListView.Columns.Count - 1].Width = lastColumnWidth;
+        }
+
+        /// <summary>
+        /// Auto-sizes category list view columns for optimal display
+        /// </summary>
+        private void AutoSizeCategoryListViewColumns(ListView listView)
+        {
+            if (listView.Columns.Count == 0 || listView.ClientSize.Width <= 0)
+                return;
+
+            int totalWidth = listView.ClientSize.Width;
+            int fixedColumnsWidth = 0;
+
+            for (int i = 0; i < listView.Columns.Count - 1; i++)
+            {
+                fixedColumnsWidth += listView.Columns[i].Width;
+            }
+
+            int lastColumnWidth = Math.Max(100, totalWidth - fixedColumnsWidth - 5);
+            listView.Columns[listView.Columns.Count - 1].Width = lastColumnWidth;
+        }
+
+        #endregion
+
+        #region UI Initialization
+
+        /// <summary>
+        /// Initializes the main form UI components
+        /// </summary>
         private void InitializeComponent()
         {
             this.Text = "PMIC Dump Parser v1.0";
@@ -141,6 +881,9 @@ namespace PMICDumpParser
             this.Controls.Add(mainContainer);
         }
 
+        /// <summary>
+        /// Creates the main menu strip
+        /// </summary>
         private MenuStrip CreateMenuStrip()
         {
             var menuStrip = new MenuStrip
@@ -176,6 +919,9 @@ namespace PMICDumpParser
             return menuStrip;
         }
 
+        /// <summary>
+        /// Creates the toolbar
+        /// </summary>
         private ToolStrip CreateToolbar()
         {
             var toolStrip = new ToolStrip
@@ -238,6 +984,9 @@ namespace PMICDumpParser
             return toolStrip;
         }
 
+        /// <summary>
+        /// Creates the summary tab with register grid and statistics
+        /// </summary>
         private TabPage CreateSummaryTab()
         {
             var tab = new TabPage("Summary");
@@ -264,14 +1013,13 @@ namespace PMICDumpParser
             _summaryGrid = new TableLayoutPanel
             {
                 Dock = DockStyle.Fill,
-                ColumnCount = 17, // 1 for row headers + 16 for columns
-                RowCount = 17,    // 1 for column headers + 16 for rows
+                ColumnCount = 17,
+                RowCount = 17,
                 CellBorderStyle = TableLayoutPanelCellBorderStyle.Single,
                 Padding = new Padding(1),
                 BackColor = _gridBorderColor
             };
 
-            // Set column and row styles
             for (int i = 0; i < 17; i++)
             {
                 _summaryGrid.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, i == 0 ? 4 : 6));
@@ -334,7 +1082,6 @@ namespace PMICDumpParser
 
                     cellPanel.Controls.Add(addressLabel);
 
-                    // Click to show register details
                     cellPanel.Click += (s, e) =>
                     {
                         if (_currentDump?.Registers.TryGetValue(address, out var reg) == true)
@@ -343,7 +1090,6 @@ namespace PMICDumpParser
                         }
                         else
                         {
-                            // Handle reserved registers
                             var reservedReg = new ParsedRegister
                             {
                                 Address = address,
@@ -354,13 +1100,12 @@ namespace PMICDumpParser
                                 Category = "Reserved",
                                 DecodedValue = "Reserved",
                                 Description = $"Reserved register 0x{address:X2}",
-                                Definition = RegisterLoader.GetDef(address)
+                                Definition = RegisterLoaderService.GetDefinition(address)
                             };
                             ShowRegisterDetails(reservedReg);
                         }
                     };
 
-                    // Also make the label clickable
                     addressLabel.Click += (s, e) =>
                     {
                         if (_currentDump?.Registers.TryGetValue(address, out var reg) == true)
@@ -369,7 +1114,6 @@ namespace PMICDumpParser
                         }
                         else
                         {
-                            // Handle reserved registers
                             var reservedReg = new ParsedRegister
                             {
                                 Address = address,
@@ -380,13 +1124,12 @@ namespace PMICDumpParser
                                 Category = "Reserved",
                                 DecodedValue = "Reserved",
                                 Description = $"Reserved register 0x{address:X2}",
-                                Definition = RegisterLoader.GetDef(address)
+                                Definition = RegisterLoaderService.GetDefinition(address)
                             };
                             ShowRegisterDetails(reservedReg);
                         }
                     };
 
-                    // Mouse events for hover effect
                     cellPanel.MouseEnter += (s, e) =>
                     {
                         if (cellPanel.BackColor != _selectedGridColor)
@@ -407,10 +1150,6 @@ namespace PMICDumpParser
                             UpdateGridCellColor(cellPanel, address);
                         }
                     };
-
-                    // Also handle hover for the label
-                    addressLabel.MouseEnter += (s, e) => cellPanel_MouseEnter(cellPanel, e);
-                    addressLabel.MouseLeave += (s, e) => cellPanel_MouseLeave(cellPanel, e);
 
                     _summaryGrid.Controls.Add(cellPanel, col + 1, row + 1);
                 }
@@ -464,6 +1203,9 @@ namespace PMICDumpParser
             return tab;
         }
 
+        /// <summary>
+        /// Creates the statistics column for the summary tab
+        /// </summary>
         private Control CreateStatisticsColumn()
         {
             var container = new Panel
@@ -493,7 +1235,6 @@ namespace PMICDumpParser
             statsTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 60));
             statsTable.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 40));
 
-            // Create and store the statistic labels
             AddStatRow(statsTable, 0, "Total Registers:", "0", out _statTotal);
             AddStatRow(statsTable, 1, "Changed:", "0", out _statChanged);
             AddStatRow(statsTable, 2, "Protected:", "0", out _statProtected);
@@ -506,6 +1247,9 @@ namespace PMICDumpParser
             return container;
         }
 
+        /// <summary>
+        /// Creates the quick actions column for the summary tab
+        /// </summary>
         private Control CreateQuickActionsColumn()
         {
             var container = new Panel
@@ -607,7 +1351,6 @@ namespace PMICDumpParser
             btnResetAll.Click += OnResetFilter;
             actionsPanel.Controls.Add(btnResetAll);
 
-            // Handle resize to adjust button widths
             actionsPanel.Resize += (s, e) =>
             {
                 foreach (Control control in actionsPanel.Controls)
@@ -625,6 +1368,9 @@ namespace PMICDumpParser
             return container;
         }
 
+        /// <summary>
+        /// Creates the color legend column for the summary tab
+        /// </summary>
         private Control CreateLegendColumn()
         {
             var container = new Panel
@@ -665,6 +1411,9 @@ namespace PMICDumpParser
             return container;
         }
 
+        /// <summary>
+        /// Adds a statistic row to the statistics table
+        /// </summary>
         private void AddStatRow(TableLayoutPanel table, int row, string label, string value, out Label valueLabel)
         {
             var lbl = new Label
@@ -689,6 +1438,9 @@ namespace PMICDumpParser
             table.Controls.Add(valueLabel, 1, row);
         }
 
+        /// <summary>
+        /// Adds a compact legend item to the legend panel
+        /// </summary>
         private void AddCompactLegendItem(FlowLayoutPanel panel, Color color, string text)
         {
             var itemPanel = new Panel
@@ -722,6 +1474,9 @@ namespace PMICDumpParser
             panel.Controls.Add(itemPanel);
         }
 
+        /// <summary>
+        /// Creates the detailed tab with list view and property grid
+        /// </summary>
         private TabPage CreateDetailedTab()
         {
             var tab = new TabPage("Detailed");
@@ -739,7 +1494,7 @@ namespace PMICDumpParser
             // List View Panel
             var listPanel = new Panel { Dock = DockStyle.Fill, BackColor = Color.White };
 
-            _detailedListView = new ListView
+            _detailedListView = new RegisterListView
             {
                 Dock = DockStyle.Fill,
                 View = View.Details,
@@ -761,16 +1516,14 @@ namespace PMICDumpParser
             _detailedListView.Columns.Add("Category", 120);
             _detailedListView.Columns.Add("Decoded Value", 300);
 
-            _detailedListView.SelectedIndexChanged += (s, e) => OnRegisterSelected(_detailedListView);
-            _detailedListView.DoubleClick += (s, e) => OnRegisterDoubleClick();
+            _detailedListView.RegisterSelected += OnRegisterSelected;
+            _detailedListView.RegisterDoubleClicked += OnRegisterDoubleClick;
             _detailedListView.ColumnClick += OnColumnClick;
-
-            // Auto-size columns on resize
             _detailedListView.Resize += (s, e) => AutoSizeListViewColumns();
 
             // Context menu
             var contextMenu = new ContextMenuStrip();
-            contextMenu.Items.Add("View Details", null, (s, e) => OnRegisterDoubleClick());
+            contextMenu.Items.Add("View Details", null, (s, e) => OnRegisterDoubleClick(s, e));
             contextMenu.Items.Add(new ToolStripSeparator());
             contextMenu.Items.Add("Copy Address", null, (s, e) => CopyToClipboard(0));
             contextMenu.Items.Add("Copy Value", null, (s, e) => CopyToClipboard(3));
@@ -801,6 +1554,9 @@ namespace PMICDumpParser
             return tab;
         }
 
+        /// <summary>
+        /// Creates the category tab with tree view and list view
+        /// </summary>
         private TabPage CreateCategoryTab()
         {
             var tab = new TabPage("By Category");
@@ -852,8 +1608,20 @@ namespace PMICDumpParser
             listView.Columns.Add("Status", 100, HorizontalAlignment.Center);
             listView.Columns.Add("Decoded", 250);
 
-            listView.SelectedIndexChanged += (s, e) => OnRegisterSelected(listView);
-            listView.DoubleClick += (s, e) => OnRegisterDoubleClick();
+            listView.SelectedIndexChanged += (s, e) =>
+            {
+                if (listView.SelectedItems.Count > 0 && listView.SelectedItems[0].Tag is ParsedRegister reg)
+                {
+                    UpdateDetailPanel(reg);
+                }
+            };
+            listView.DoubleClick += (s, e) =>
+            {
+                if (listView.SelectedItems.Count > 0 && listView.SelectedItems[0].Tag is ParsedRegister reg)
+                {
+                    ShowRegisterDetails(reg);
+                }
+            };
             listView.Resize += (s, e) => AutoSizeCategoryListViewColumns(listView);
 
             listPanel.Controls.Add(listView);
@@ -867,6 +1635,9 @@ namespace PMICDumpParser
             return tab;
         }
 
+        /// <summary>
+        /// Creates the status bar
+        /// </summary>
         private StatusStrip CreateStatusBar()
         {
             var statusStrip = new StatusStrip
@@ -912,505 +1683,9 @@ namespace PMICDumpParser
             return statusStrip;
         }
 
-        private async Task InitializeRegisterLoaderAsync()
-        {
-            try
-            {
-                ShowProgress("Loading register definitions...", 0);
-                await RegisterLoader.LoadAsync().ConfigureAwait(false);
-                UpdateStatus("Loaded register definitions");
-                HideProgress();
-            }
-            catch (Exception ex)
-            {
-                HideProgress();
-                MessageBox.Show($"Failed to load register definitions: {ex.Message}", "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-            }
-        }
-
-        private void ShowProgress(string message, int value = 0)
-        {
-            _progressBar.Visible = true;
-            _progressBar.Value = value;
-            UpdateStatus(message);
-        }
-
-        private void HideProgress() => _progressBar.Visible = false;
-
-        private void UpdateStatus(string message)
-        {
-            if (InvokeRequired)
-                BeginInvoke(new Action(() => _statusLabel.Text = message));
-            else
-                _statusLabel.Text = message;
-        }
-
-        private async void OnOpenDump(object? sender, EventArgs e)
-        {
-            using var dialog = new OpenFileDialog
-            {
-                Filter = "PMIC Dump Files (*.bin)|*.bin|All files (*.*)|*.*",
-                Title = "Open PMIC Dump File",
-                Multiselect = false
-            };
-
-            if (dialog.ShowDialog() == DialogResult.OK)
-            {
-                await LoadDumpFileAsync(dialog.FileName);
-            }
-        }
-
-        private async Task LoadDumpFileAsync(string filePath)
-        {
-            _loadCancellationTokenSource?.Cancel();
-            _loadCancellationTokenSource = new CancellationTokenSource();
-
-            try
-            {
-                ShowProgress("Loading dump file...", 0);
-                _currentDump = await DumpParser.ParseAsync(filePath).ConfigureAwait(false);
-
-                if (InvokeRequired)
-                {
-                    BeginInvoke(new Action(() =>
-                    {
-                        UpdateAllViews();
-                        UpdateStatusBar();
-                        UpdateStatus($"Loaded: {Path.GetFileName(filePath)}");
-                        HideProgress();
-                        AutoSizeListViewColumns();
-                    }));
-                }
-                else
-                {
-                    UpdateAllViews();
-                    UpdateStatusBar();
-                    UpdateStatus($"Loaded: {Path.GetFileName(filePath)}");
-                    HideProgress();
-                    AutoSizeListViewColumns();
-                }
-            }
-            catch (OperationCanceledException)
-            {
-                HideProgress();
-                UpdateStatus("Load cancelled");
-            }
-            catch (Exception ex)
-            {
-                HideProgress();
-                MessageBox.Show($"Error loading dump: {ex.Message}", "Error",
-                    MessageBoxButtons.OK, MessageBoxIcon.Error);
-                UpdateStatus("Error loading file");
-            }
-        }
-
-        private void UpdateAllViews()
-        {
-            if (_currentDump == null) return;
-            UpdateDetailedListView();
-            UpdateCategoryTree();
-            UpdateSummaryGrid();
-        }
-
-        private void UpdateDetailedListView()
-        {
-            if (_currentDump == null) return;
-
-            _detailedListView.BeginUpdate();
-            _detailedListView.Items.Clear();
-
-            try
-            {
-                var registers = _currentDump.Registers.Values.OrderBy(r => r.Address).ToList();
-
-                // Apply filters
-                if (_btnChangedOnly.Checked)
-                    registers = registers.Where(r => r.IsChanged).ToList();
-
-                if (_btnProtectedOnly.Checked)
-                    registers = registers.Where(r => r.Definition.Protected == true).ToList();
-
-                string searchText = _searchBox.Text;
-                if (!string.IsNullOrEmpty(searchText) && !searchText.Equals("Search...", StringComparison.OrdinalIgnoreCase))
-                {
-                    registers = registers.Where(r =>
-                        r.Name.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        r.FullName.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        r.AddrHex.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        r.ValHex.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        r.DecodedValue.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0 ||
-                        r.Category.IndexOf(searchText, StringComparison.OrdinalIgnoreCase) >= 0
-                    ).ToList();
-                }
-
-                foreach (var reg in registers)
-                {
-                    var item = new ListViewItem(reg.AddrHex);
-                    item.SubItems.Add(reg.Name);
-                    item.SubItems.Add(reg.FullName);
-                    item.SubItems.Add(reg.ValHex);
-                    item.SubItems.Add(reg.DefaultHex);
-                    item.SubItems.Add(reg.IsChanged ? "CHANGED" : "DEFAULT");
-                    item.SubItems.Add(reg.Definition.Protected == true ? "Yes" : "No");
-                    item.SubItems.Add(reg.Category);
-                    item.SubItems.Add(reg.DecodedValue);
-                    item.Tag = reg;
-
-                    // Apply color scheme
-                    if (reg.Definition.Protected == true)
-                        item.BackColor = IsCriticalChange(reg) ? _criticalColor : _protectedColor;
-                    else if (reg.IsChanged)
-                        item.BackColor = IsCriticalChange(reg) ? _criticalColor : _changedColor;
-                    else if (reg.Category != "Reserved") // Unchanged non-reserved registers
-                        item.BackColor = _unchangedColor;
-
-                    _detailedListView.Items.Add(item);
-                }
-            }
-            finally
-            {
-                _detailedListView.EndUpdate();
-                AutoSizeListViewColumns();
-            }
-        }
-
-        private void UpdateCategoryTree()
-        {
-            if (_currentDump == null) return;
-
-            _categoryTreeView.BeginUpdate();
-            _categoryTreeView.Nodes.Clear();
-            _categoryRegisters.Clear();
-
-            try
-            {
-                var categories = _currentDump.Registers.Values
-                    .GroupBy(r => r.Category)
-                    .OrderBy(g => g.Key);
-
-                foreach (var category in categories)
-                {
-                    var categoryNode = new TreeNode($"{category.Key} ({category.Count()})")
-                    {
-                        Tag = category.Key
-                    };
-
-                    foreach (var reg in category.OrderBy(r => r.Address))
-                    {
-                        string status = reg.IsChanged ? " [CHANGED]" : "";
-                        string protectedFlag = reg.Definition.Protected == true ? " [PROTECTED]" : "";
-
-                        var regNode = new TreeNode($"{reg.AddrHex}: {reg.Name}{status}{protectedFlag}")
-                        {
-                            Tag = reg
-                        };
-
-                        // Apply color scheme
-                        if (reg.IsChanged && reg.Definition.Protected == false)
-                            regNode.ForeColor = Color.FromArgb(0, 102, 204); // Blue for changed
-                        else if (reg.Definition.Protected == true)
-                        {
-                            regNode.ForeColor = Color.FromArgb(153, 102, 0); // Brown for protected
-
-                            if (reg.IsChanged == true)
-                                regNode.ForeColor = IsCriticalChange(reg) ? Color.FromArgb(224, 63, 63) : Color.FromArgb(98, 182, 245);
-                        }
-
-
-                        categoryNode.Nodes.Add(regNode);
-                    }
-
-                    _categoryTreeView.Nodes.Add(categoryNode);
-                    _categoryRegisters[category.Key] = category.ToList();
-                }
-            }
-            finally
-            {
-                _categoryTreeView.EndUpdate();
-            }
-        }
-
-        private void UpdateSummaryGrid()
-        {
-            if (_summaryGrid == null || _currentDump == null) return;
-
-            // Update all grid cells
-            foreach (Control control in _summaryGrid.Controls)
-            {
-                if (control is Panel cell && cell.Tag is byte address)
-                {
-                    UpdateGridCellColor(cell, address);
-                }
-            }
-
-            // Update statistics using the stored label references
-            UpdateStatistics();
-        }
-
-        private void UpdateStatistics()
-        {
-            if (_currentDump == null) return;
-
-            var total = _currentDump.Registers.Count;
-            var changed = _currentDump.Changed.Count;
-            var protectedCount = _currentDump.Protected.Count;
-            var critical = _currentDump.Registers.Values.Count(IsCriticalChange);
-            var changedPercent = total > 0 ? (changed * 100.0 / total) : 0;
-
-            // Update the stored label references
-            if (_statTotal != null) _statTotal.Text = total.ToString();
-            if (_statChanged != null) _statChanged.Text = changed.ToString();
-            if (_statProtected != null) _statProtected.Text = protectedCount.ToString();
-            if (_statCritical != null) _statCritical.Text = critical.ToString();
-            if (_statChangedPercent != null) _statChangedPercent.Text = $"{changedPercent:F1}%";
-        }
-
-        private void UpdateGridCellColor(Panel cell, byte address)
-        {
-            if (_currentDump?.Registers.TryGetValue(address, out var reg) == true)
-            {
-                // Check if it's a reserved register
-                if (reg.Category == "Reserved" && reg.Name.StartsWith("RESERVED_"))
-                {
-                    // Reserved register - show as grey
-                    cell.BackColor = _defaultGridColor;
-                }
-                else if (reg.IsChanged)
-                {
-                    bool isCritical = IsCriticalChange(reg);
-                    cell.BackColor = isCritical ? _criticalColor : _changedColor;
-                }
-                else if (reg.Definition.Protected == true)
-                {
-                    cell.BackColor = _protectedColor;
-                }
-                else
-                {
-                    // Unchanged and not protected - light green
-                    cell.BackColor = _unchangedColor;
-                }
-            }
-            else
-            {
-                // Reserved/empty register (no definition) - grey
-                cell.BackColor = _defaultGridColor;
-            }
-        }
-
-        public bool IsCriticalChange(ParsedRegister reg)
-        {
-            // Only check for specific register types
-            var name = reg.Name.ToUpper();
-            bool isVoltageReg = name.Contains("VOLT") || name.Contains("SWA_VOLT") ||
-                                name.Contains("SWB_VOLT") || name.Contains("SWC_VOLT");
-            bool isCurrentReg = name.Contains("CURR") || name.Contains("SWA_CURR") ||
-                                name.Contains("SWB_CURR") || name.Contains("SWC_CURR");
-
-            if (!isVoltageReg && !isCurrentReg)
-                return false;
-
-            // Check if it's a changed register
-            if (!reg.IsChanged)
-                return false;
-
-            // For voltage/current registers, check the percentage change
-            // Get the nominal value from default
-            double nominalValue = reg.DefaultValue;
-
-            if (nominalValue <= 0)
-                return false;
-
-            // Calculate percentage change based on the max range
-            double currentValue = reg.RawValue;
-            double absoluteChange = Math.Abs(currentValue - nominalValue);
-            double changePercent = (absoluteChange / MAX_VOLTAGE_RANGE) * 100.0;
-
-#if DEBUG
-            Console.WriteLine($"{name}: Current={currentValue}, Default={nominalValue}, Change={changePercent:F2}%");
-#endif
-
-            return changePercent > CRITICAL_THRESHOLD_PERCENT;
-        }
-
-        private void UpdateStatusBar()
-        {
-            if (_currentDump == null)
-            {
-                _fileInfoLabel.Text = string.Empty;
-                _regCountLabel.Text = string.Empty;
-                return;
-            }
-
-            _fileInfoLabel.Text = $"File: {Path.GetFileName(_currentDump.FilePath)} | Loaded: {_currentDump.LoadTime:yyyy-MM-dd HH:mm:ss}";
-            _regCountLabel.Text = $"Total: {_currentDump.Registers.Count} | Changed: {_currentDump.Changed.Count} | Protected: {_currentDump.Protected.Count}";
-        }
-
-        private void OnRegisterSelected(ListView listView)
-        {
-            if (listView.SelectedItems.Count > 0 && listView.SelectedItems[0].Tag is ParsedRegister reg)
-            {
-                UpdateDetailPanel(reg);
-            }
-        }
-
-        private void OnCategorySelected(object? sender, TreeViewEventArgs e)
-        {
-            if (e.Node?.Tag is ParsedRegister reg)
-            {
-                UpdateDetailPanel(reg);
-                if (_categoryListViews.TryGetValue("Category", out var listView))
-                {
-                    foreach (ListViewItem item in listView.Items)
-                    {
-                        if (item.Tag == reg)
-                        {
-                            item.Selected = true;
-                            item.EnsureVisible();
-                            break;
-                        }
-                    }
-                }
-            }
-            else if (e.Node?.Tag is string category && _categoryRegisters.TryGetValue(category, out var registers))
-            {
-                if (_categoryListViews.TryGetValue("Category", out var listView))
-                {
-                    listView.BeginUpdate();
-                    listView.Items.Clear();
-
-                    foreach (var categoryReg in registers.OrderBy(r => r.Address))
-                    {
-                        var item = new ListViewItem(categoryReg.AddrHex);
-                        item.SubItems.Add(categoryReg.Name);
-                        item.SubItems.Add(categoryReg.ValHex);
-                        item.SubItems.Add(categoryReg.DefaultHex);
-                        item.SubItems.Add(categoryReg.IsChanged ? "CHANGED" : "DEFAULT");
-                        item.SubItems.Add(categoryReg.DecodedValue);
-                        item.Tag = categoryReg;
-
-                        if (categoryReg.IsChanged)
-                            item.BackColor = _changedColor;
-                        else if (categoryReg.Definition.Protected == true)
-                            item.BackColor = _protectedColor;
-
-                        listView.Items.Add(item);
-                    }
-
-                    listView.EndUpdate();
-                    AutoSizeCategoryListViewColumns(listView);
-                }
-            }
-        }
-
-        private void OnCategoryNodeDoubleClick(TreeNode node)
-        {
-            if (node.Tag is ParsedRegister reg)
-            {
-                ShowRegisterDetails(reg);
-            }
-        }
-
-        private void OnRegisterDoubleClick()
-        {
-            if (_detailedListView.SelectedItems.Count > 0 && _detailedListView.SelectedItems[0].Tag is ParsedRegister reg)
-            {
-                ShowRegisterDetails(reg);
-            }
-            else if (_categoryListViews.TryGetValue("Category", out var listView) &&
-                     listView.SelectedItems.Count > 0 && listView.SelectedItems[0].Tag is ParsedRegister reg2)
-            {
-                ShowRegisterDetails(reg2);
-            }
-        }
-
-        private void ShowRegisterDetails(ParsedRegister reg)
-        {
-            var detailForm = new RegisterDetailForm(reg, IsCriticalChange);
-            detailForm.ShowDialog();
-        }
-
-        private void UpdateDetailPanel(ParsedRegister reg)
-        {
-            var displayObj = new
-            {
-                Address = reg.AddrHex,
-                Name = reg.Name,
-                FullName = reg.FullName,
-                Category = reg.Category,
-                Type = $"{reg.Definition.Type} {(reg.Definition.Protected == true ? "(Protected)" : "")}",
-                RawValue = $"{reg.ValHex} ({reg.RawValue})",
-                DefaultValue = $"{reg.DefaultHex} ({reg.DefaultValue})",
-                BinaryValue = Convert.ToString(reg.RawValue, 2).PadLeft(8, '0'),
-                Status = reg.IsChanged ? "CHANGED FROM DEFAULT" : "AT DEFAULT",
-                DecodedValue = reg.DecodedValue,
-                Description = reg.Description,
-                Fields = reg.Definition.Fields?.Count ?? 0,
-                IsProtected = reg.Definition.Protected == true ? "Yes" : "No"
-            };
-
-            _detailPropertyGrid.SelectedObject = displayObj;
-        }
-
-        private void OnSearchTextChanged(object sender, EventArgs e)
-        {
-            if (_currentDump != null) UpdateDetailedListView();
-        }
-
-        private void OnSearchEnter(object sender, EventArgs e)
-        {
-            if (_searchBox.Text == "Search...")
-            {
-                _searchBox.Text = "";
-                _searchBox.ForeColor = Color.Black;
-            }
-        }
-
-        private void OnSearchLeave(object sender, EventArgs e)
-        {
-            if (string.IsNullOrWhiteSpace(_searchBox.Text))
-            {
-                _searchBox.Text = "Search...";
-                _searchBox.ForeColor = Color.Gray;
-            }
-        }
-
-        private void OnToggleChangedFilter(object sender, EventArgs e) => UpdateDetailedListView();
-        private void OnToggleProtectedFilter(object sender, EventArgs e) => UpdateDetailedListView();
-
-        private void OnResetFilter(object sender, EventArgs e)
-        {
-            _btnChangedOnly.Checked = false;
-            _btnProtectedOnly.Checked = false;
-            _searchBox.Text = "Search...";
-            _searchBox.ForeColor = Color.Gray;
-            if (_currentDump != null) UpdateDetailedListView();
-        }
-
-        private void OnColumnClick(object sender, ColumnClickEventArgs e)
-        {
-            if (_detailedListView.Items.Count == 0) return;
-
-            var sorter = _detailedListView.ListViewItemSorter as ListViewColumnSorter;
-            if (sorter == null)
-            {
-                sorter = new ListViewColumnSorter();
-                _detailedListView.ListViewItemSorter = sorter;
-            }
-
-            if (e.Column == sorter.SortColumn)
-            {
-                sorter.Order = sorter.Order == SortOrder.Ascending ? SortOrder.Descending : SortOrder.Ascending;
-            }
-            else
-            {
-                sorter.SortColumn = e.Column;
-                sorter.Order = SortOrder.Ascending;
-            }
-
-            _detailedListView.Sort();
-        }
-
+        /// <summary>
+        /// Copies selected cell text to clipboard
+        /// </summary>
         private void CopyToClipboard(int columnIndex)
         {
             if (_detailedListView.SelectedItems.Count > 0)
@@ -1420,174 +1695,6 @@ namespace PMICDumpParser
             }
         }
 
-        private async void OnReloadDefinitions(object? sender, EventArgs e)
-        {
-            try
-            {
-                ShowProgress("Reloading register definitions...", 0);
-                var field = typeof(RegisterLoader).GetField("_lazyMap", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
-                field?.SetValue(null, null);
-                await RegisterLoader.LoadAsync().ConfigureAwait(false);
-                HideProgress();
-
-                if (_currentDump != null)
-                {
-                    await LoadDumpFileAsync(_currentDump.FilePath);
-                    MessageBox.Show("Register definitions reloaded successfully!", "Reload Complete");
-                }
-                else
-                {
-                    MessageBox.Show("Register definitions reloaded. Load a dump file to apply changes.", "Reload Complete");
-                }
-            }
-            catch (Exception ex)
-            {
-                HideProgress();
-                MessageBox.Show($"Error reloading definitions: {ex.Message}", "Error");
-            }
-        }
-
-        private void OnExportCsv(object sender, EventArgs e)
-        {
-            if (_currentDump == null)
-            {
-                MessageBox.Show("No dump loaded", "Info");
-                return;
-            }
-
-            var saveDialog = new SaveFileDialog
-            {
-                Filter = "CSV files (*.csv)|*.csv",
-                FileName = $"PMIC_Dump_{DateTime.Now:yyyyMMdd_HHmmss}.csv"
-            };
-
-            if (saveDialog.ShowDialog() == DialogResult.OK)
-            {
-                try
-                {
-                    var csv = new System.Text.StringBuilder();
-                    csv.AppendLine("Address,Name,Full Name,Value,Default,Status,Protected,Category,Decoded Value,Description");
-
-                    foreach (var reg in _currentDump.Registers.Values.OrderBy(r => r.Address))
-                    {
-                        csv.AppendLine($"\"{reg.AddrHex}\",\"{reg.Name}\",\"{reg.FullName}\",\"{reg.ValHex}\",\"{reg.DefaultHex}\",\"{(reg.IsChanged ? "CHANGED" : "DEFAULT")}\",\"{(reg.Definition.Protected == true ? "Yes" : "No")}\",\"{reg.Category}\",\"{reg.DecodedValue}\",\"{reg.Description.Replace("\"", "\"\"")}\"");
-                    }
-
-                    File.WriteAllText(saveDialog.FileName, csv.ToString());
-                    UpdateStatus($"Exported to CSV: {Path.GetFileName(saveDialog.FileName)}");
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show($"Error exporting CSV: {ex.Message}", "Error");
-                }
-            }
-        }
-
-        private async void OnSaveReport(object? sender, EventArgs e)
-        {
-            if (_currentDump == null)
-            {
-                MessageBox.Show("No dump loaded", "Info");
-                return;
-            }
-
-            using var dialog = new SaveFileDialog
-            {
-                Filter = "Text files (*.txt)|*.txt|CSV files (*.csv)|*.csv",
-                FileName = $"PMIC_Dump_{DateTime.Now:yyyyMMdd_HHmmss}.txt"
-            };
-
-            if (dialog.ShowDialog() == DialogResult.OK)
-            {
-                try
-                {
-                    ShowProgress("Generating report...", 0);
-                    var report = DumpParser.GenerateReport(_currentDump!);
-                    await FileHelper.WriteTextAsync(dialog.FileName, report).ConfigureAwait(false);
-                    HideProgress();
-                    MessageBox.Show($"Report saved to {dialog.FileName}", "Success");
-                }
-                catch (Exception ex)
-                {
-                    HideProgress();
-                    MessageBox.Show($"Error saving report: {ex.Message}", "Error");
-                }
-            }
-        }
-
-        private void OnUserGuide(object sender, EventArgs e)
-        {
-            MessageBox.Show("PMIC Dump Parser User Guide\n\n1. Open a PMIC dump file (.bin)\n2. View registers in different tabs\n3. Double-click any register for detailed view\n4. Use filters and search to find specific registers\n5. Export reports as needed", "User Guide");
-        }
-
-        private void OnAbout(object sender, EventArgs e)
-        {
-            MessageBox.Show("PMIC Dump Parser v1.0\n\nA tool for analyzing PMIC register dumps\nSupports RTQ5132 and compatible PMICs\n\n© 2024 PMIC Tools", "About");
-        }
-
-        private void AutoSizeListViewColumns()
-        {
-            if (_detailedListView.Columns.Count == 0 || _detailedListView.ClientSize.Width <= 0)
-                return;
-
-            int totalWidth = _detailedListView.ClientSize.Width;
-            int fixedColumnsWidth = 0;
-
-            for (int i = 0; i < _detailedListView.Columns.Count - 1; i++)
-            {
-                fixedColumnsWidth += _detailedListView.Columns[i].Width;
-            }
-
-            int lastColumnWidth = Math.Max(100, totalWidth - fixedColumnsWidth - 5);
-            _detailedListView.Columns[_detailedListView.Columns.Count - 1].Width = lastColumnWidth;
-        }
-
-        private void AutoSizeCategoryListViewColumns(ListView listView)
-        {
-            if (listView.Columns.Count == 0 || listView.ClientSize.Width <= 0)
-                return;
-
-            int totalWidth = listView.ClientSize.Width;
-            int fixedColumnsWidth = 0;
-
-            for (int i = 0; i < listView.Columns.Count - 1; i++)
-            {
-                fixedColumnsWidth += listView.Columns[i].Width;
-            }
-
-            int lastColumnWidth = Math.Max(100, totalWidth - fixedColumnsWidth - 5);
-            listView.Columns[listView.Columns.Count - 1].Width = lastColumnWidth;
-        }
-    }
-
-
-    public class ListViewColumnSorter : System.Collections.IComparer
-    {
-        public int SortColumn { get; set; } = 0;
-        public SortOrder Order { get; set; } = SortOrder.Ascending;
-
-        public int Compare(object? x, object? y)
-        {
-            if (x == null || y == null) return 0;
-
-            var itemX = (ListViewItem)x;
-            var itemY = (ListViewItem)y;
-
-            string textX = itemX.SubItems[SortColumn].Text;
-            string textY = itemY.SubItems[SortColumn].Text;
-
-            if (SortColumn == 0 || SortColumn == 3 || SortColumn == 4)
-            {
-                if (int.TryParse(textX.Replace("0x", ""), System.Globalization.NumberStyles.HexNumber, null, out int numX) &&
-                    int.TryParse(textY.Replace("0x", ""), System.Globalization.NumberStyles.HexNumber, null, out int numY))
-                {
-                    return Order == SortOrder.Ascending ? numX.CompareTo(numY) : numY.CompareTo(numX);
-                }
-            }
-
-            return Order == SortOrder.Ascending
-                ? string.Compare(textX, textY, StringComparison.OrdinalIgnoreCase)
-                : string.Compare(textY, textX, StringComparison.OrdinalIgnoreCase);
-        }
+        #endregion
     }
 }
