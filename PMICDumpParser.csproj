@@ -51,25 +51,31 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Models\ParsedRegister.cs" />
+    <Compile Include="Services\AppColors.cs" />
     <Compile Include="Services\DumpParserService.cs" />
     <Compile Include="Services\FileHelperService.cs" />
+    <Compile Include="Services\RegisterAnalyzer.cs" />
     <Compile Include="Services\RegisterDecoderService.cs" />
+    <Compile Include="Services\RegisterEditService.cs" />
     <Compile Include="Services\RegisterLoaderService.cs" />
     <Compile Include="Models\PmicDump.cs" />
     <Compile Include="Models\Enums.cs" />
     <Compile Include="Models\RegisterDefinition.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="UI\Controls\FieldEditorControls.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
     <Compile Include="UI\Controls\RegisterGridView.cs">
       <SubType>Component</SubType>
     </Compile>
     <Compile Include="UI\Controls\RegisterListView.cs">
       <SubType>Component</SubType>
     </Compile>
-    <Compile Include="UI\MainForm.cs">
+    <Compile Include="Forms\MainForm.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="UI\RegisterDetailForm.cs">
+    <Compile Include="Forms\RegisterDetailForm.cs">
       <SubType>Form</SubType>
     </Compile>
     <Compile Include="UI\RegisterDetailTabs\BitFieldAnalysisTab.cs">
@@ -87,6 +93,13 @@
     <Compile Include="UI\RegisterDetailTabs\RawDataTab.cs">
       <SubType>UserControl</SubType>
     </Compile>
+    <Compile Include="UI\Controls\RegisterEditorTab.cs">
+      <SubType>UserControl</SubType>
+    </Compile>
+    <Compile Include="Forms\SaveEditsDialog.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="UI\Utilities\UtilityExtensions.cs" />
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
       <LastGenOutput>Resources.Designer.cs</LastGenOutput>
@@ -96,7 +109,7 @@
       <AutoGen>True</AutoGen>
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
-    <EmbeddedResource Include="UI\MainForm.resx">
+    <EmbeddedResource Include="Forms\MainForm.resx">
       <DependentUpon>MainForm.cs</DependentUpon>
     </EmbeddedResource>
     <None Include="Data\RegisterMap.json">
@@ -116,5 +129,6 @@
   <ItemGroup>
     <None Include="App.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>

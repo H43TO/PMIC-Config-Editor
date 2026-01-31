@@ -1,4 +1,5 @@
 ﻿using PMICDumpParser.Models;
+using PMICDumpParser.Services;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -8,7 +9,7 @@ using System.Windows.Forms;
 namespace PMICDumpParser.UI.Controls
 {
     /// <summary>
-    /// Enhanced ListView for displaying PMIC registers with filtering and sorting
+    /// Enhanced ListView for displaying PMIC registers with filtering, sorting, and consistent coloring
     /// </summary>
     public class RegisterListView : ListView
     {
@@ -20,12 +21,7 @@ namespace PMICDumpParser.UI.Controls
         public bool ShowProtectedOnly { get; set; }
         public string SearchText { get; set; } = string.Empty;
 
-        // Color scheme
-        private readonly Color _changedColor = Color.FromArgb(220, 240, 255);
-        private readonly Color _protectedColor = Color.FromArgb(255, 250, 205);
-        private readonly Color _criticalColor = Color.FromArgb(255, 230, 230);
-        private readonly Color _unchangedColor = Color.FromArgb(230, 255, 230);
-
+        // Events for register selection
         public event EventHandler<RegisterSelectedEventArgs>? RegisterSelected;
         public event EventHandler? RegisterDoubleClicked;
 
@@ -79,6 +75,9 @@ namespace PMICDumpParser.UI.Controls
 
         #region Private Methods
 
+        /// <summary>
+        /// Initializes the ListView with columns and event handlers
+        /// </summary>
         private void InitializeListView()
         {
             View = View.Details;
@@ -93,6 +92,9 @@ namespace PMICDumpParser.UI.Controls
             SetupContextMenu();
         }
 
+        /// <summary>
+        /// Sets up the ListView columns with optimized widths
+        /// </summary>
         private void SetupColumns()
         {
             Columns.Add("Address", 80, HorizontalAlignment.Center);
@@ -106,6 +108,9 @@ namespace PMICDumpParser.UI.Controls
             Columns.Add("Decoded Value", 300);
         }
 
+        /// <summary>
+        /// Sets up event handlers for the ListView
+        /// </summary>
         private void SetupEvents()
         {
             SelectedIndexChanged += (s, e) => OnRegisterSelected();
@@ -114,6 +119,9 @@ namespace PMICDumpParser.UI.Controls
             Resize += (s, e) => AutoResizeColumns();
         }
 
+        /// <summary>
+        /// Creates a context menu with useful actions
+        /// </summary>
         private void SetupContextMenu()
         {
             var contextMenu = new ContextMenuStrip();
@@ -131,6 +139,9 @@ namespace PMICDumpParser.UI.Controls
             ContextMenuStrip = contextMenu;
         }
 
+        /// <summary>
+        /// Filters registers based on current filter settings
+        /// </summary>
         private IEnumerable<ParsedRegister> FilterRegisters(IEnumerable<ParsedRegister> registers)
         {
             var filtered = registers;
@@ -156,6 +167,9 @@ namespace PMICDumpParser.UI.Controls
             return filtered.OrderBy(r => r.Address);
         }
 
+        /// <summary>
+        /// Creates a ListViewItem for a register with appropriate styling
+        /// </summary>
         private ListViewItem CreateListViewItem(ParsedRegister reg)
         {
             var item = new ListViewItem(reg.AddrHex);
@@ -173,43 +187,48 @@ namespace PMICDumpParser.UI.Controls
             return item;
         }
 
+        /// <summary>
+        /// Applies color coding to a ListViewItem based on register status
+        /// </summary>
         private void ApplyItemStyle(ListViewItem item, ParsedRegister reg)
         {
-            bool isCritical = IsCriticalChange(reg);
+            if (reg == null) return;
 
-            if (reg.Definition.Protected == true)
-                item.BackColor = isCritical ? _criticalColor : _protectedColor;
+            // First check if register is reserved
+            bool isReserved = RegisterAnalyzer.IsReserved(reg);
+
+            // Check if register is editable
+            bool isEditable = RegisterEditService.CanEditRegister(reg.Definition);
+
+            // Get status colors (same logic as detailed tab)
+            bool isProtected = RegisterAnalyzer.IsProtected(reg);
+            bool isCritical = RegisterAnalyzer.IsCriticalChange(reg);
+
+            // Apply the color based on status
+            item.BackColor = AppColors.GetRegisterColor(reg.IsChanged, isProtected, isCritical, isReserved);
+
+            // Set text color based on status
+            if (isReserved)
+            {
+                item.ForeColor = AppColors.DisabledText;
+            }
+            else if (!isEditable)
+            {
+                item.ForeColor = AppColors.DisabledText;
+            }
             else if (reg.IsChanged)
-                item.BackColor = isCritical ? _criticalColor : _changedColor;
-            else if (reg.Category != "Reserved")
-                item.BackColor = _unchangedColor;
+            {
+                item.ForeColor = AppColors.ValueText;
+            }
+            else
+            {
+                item.ForeColor = AppColors.LabelText;
+            }
         }
 
-        private bool IsCriticalChange(ParsedRegister reg)
-        {
-            // Simplified critical change detection - can be enhanced
-            var name = reg.Name.ToUpper();
-            bool isVoltageReg = name.Contains("VOLT") || name.Contains("SWA_VOLT") ||
-                                name.Contains("SWB_VOLT") || name.Contains("SWC_VOLT");
-            bool isCurrentReg = name.Contains("CURR") || name.Contains("SWA_CURR") ||
-                                name.Contains("SWB_CURR") || name.Contains("SWC_CURR");
-
-            if (!isVoltageReg && !isCurrentReg) return false;
-            if (!reg.IsChanged) return false;
-
-            double nominalValue = reg.DefaultValue;
-            if (nominalValue <= 0) return false;
-
-            const double MAX_VOLTAGE_RANGE = 440.0;
-            const double CRITICAL_THRESHOLD_PERCENT = 23.0;
-
-            double currentValue = reg.RawValue;
-            double absoluteChange = Math.Abs(currentValue - nominalValue);
-            double changePercent = (absoluteChange / MAX_VOLTAGE_RANGE) * 100.0;
-
-            return changePercent > CRITICAL_THRESHOLD_PERCENT;
-        }
-
+        /// <summary>
+        /// Raises the RegisterSelected event when a register is selected
+        /// </summary>
         private void OnRegisterSelected()
         {
             var selected = GetSelectedRegister();
@@ -219,6 +238,9 @@ namespace PMICDumpParser.UI.Controls
             }
         }
 
+        /// <summary>
+        /// Raises the RegisterDoubleClicked event when a register is double-clicked
+        /// </summary>
         private void OnRegisterDoubleClick()
         {
             if (GetSelectedRegister() != null)
@@ -227,6 +249,9 @@ namespace PMICDumpParser.UI.Controls
             }
         }
 
+        /// <summary>
+        /// Handles column clicking for sorting
+        /// </summary>
         private void OnColumnClick(object sender, ColumnClickEventArgs e)
         {
             if (Items.Count == 0) return;
@@ -245,6 +270,9 @@ namespace PMICDumpParser.UI.Controls
             Sort();
         }
 
+        /// <summary>
+        /// Copies the specified column text to clipboard
+        /// </summary>
         private void CopyToClipboard(int columnIndex)
         {
             if (SelectedItems.Count > 0)
@@ -253,6 +281,9 @@ namespace PMICDumpParser.UI.Controls
             }
         }
 
+        /// <summary>
+        /// Auto-resizes columns to fit content and window width
+        /// </summary>
         private void AutoResizeColumns()
         {
             if (Columns.Count == 0 || ClientSize.Width <= 0) return;
@@ -290,7 +321,7 @@ namespace PMICDumpParser.UI.Controls
             string textX = itemX.SubItems[SortColumn].Text;
             string textY = itemY.SubItems[SortColumn].Text;
 
-            // Special handling for numeric/hex columns
+            // Special handling for numeric/hex columns (Address, Value, Default)
             if (SortColumn == 0 || SortColumn == 3 || SortColumn == 4)
             {
                 if (int.TryParse(textX.Replace("0x", ""), System.Globalization.NumberStyles.HexNumber, null, out int numX) &&

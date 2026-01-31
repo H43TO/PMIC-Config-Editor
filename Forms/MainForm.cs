@@ -9,12 +9,13 @@ using System.Windows.Forms;
 using PMICDumpParser.Models;
 using PMICDumpParser.Services;
 using PMICDumpParser.UI.Controls;
+using PMICDumpParser.Utilities;
 
 namespace PMICDumpParser
 {
     /// <summary>
     /// Main application form for PMIC Dump Parser
-    /// Provides a comprehensive interface for analyzing PMIC register dumps
+    /// Provides a comprehensive interface for analyzing and editing PMIC register dumps
     /// </summary>
     public partial class MainForm : Form
     {
@@ -32,7 +33,6 @@ namespace PMICDumpParser
         private ToolStripProgressBar _progressBar;
         private TabControl _tabControl;
         private RegisterListView _detailedListView;
-        private TreeView _categoryTreeView;
         private TableLayoutPanel _summaryGrid;
         private Panel _summaryStatsPanel;
         private PropertyGrid _detailPropertyGrid;
@@ -41,25 +41,15 @@ namespace PMICDumpParser
         private ToolStripButton _btnProtectedOnly;
         private ToolStripButton _btnResetFilter;
 
+        // Editor tab
+        private RegisterEditorTab _registerEditorTab;
+
         // Statistics labels
         private Label _statTotal;
         private Label _statChanged;
         private Label _statProtected;
         private Label _statCritical;
         private Label _statChangedPercent;
-
-        // Professional color scheme
-        private readonly Color _changedColor = Color.FromArgb(220, 240, 255);  // Light blue
-        private readonly Color _protectedColor = Color.FromArgb(255, 250, 205); // Light yellow
-        private readonly Color _criticalColor = Color.FromArgb(255, 230, 230);  // Light red
-        private readonly Color _defaultGridColor = Color.FromArgb(245, 245, 245);
-        private readonly Color _unchangedColor = Color.FromArgb(230, 255, 230); // Light green for unchanged
-        private readonly Color _gridBorderColor = Color.FromArgb(230, 230, 230);
-        private readonly Color _selectedGridColor = Color.FromArgb(70, 130, 180); // Steel blue
-
-        // Constants for critical change detection
-        private const double CRITICAL_THRESHOLD_PERCENT = 23.0;
-        private const double MAX_VOLTAGE_RANGE = 440.0; // Based on voltage register range
 
         #endregion
 
@@ -87,51 +77,16 @@ namespace PMICDumpParser
         {
             try
             {
-                // Make sure we're on the UI thread when showing progress
-                if (InvokeRequired)
-                {
-                    Invoke(new Action(() => ShowProgress("Loading register definitions...", 0)));
-                }
-                else
-                {
-                    ShowProgress("Loading register definitions...", 0);
-                }
-
+                ShowProgress("Loading register definitions...", 0);
                 await RegisterLoaderService.LoadAsync().ConfigureAwait(false);
-
-                // Update status on UI thread
-                if (InvokeRequired)
-                {
-                    Invoke(new Action(() =>
-                    {
-                        UpdateStatus("Register definitions loaded successfully");
-                        HideProgress();
-                    }));
-                }
-                else
-                {
-                    UpdateStatus("Register definitions loaded successfully");
-                    HideProgress();
-                }
+                UpdateStatus("Register definitions loaded successfully");
+                HideProgress();
             }
             catch (Exception ex)
             {
-                // Handle error on UI thread
-                if (InvokeRequired)
-                {
-                    Invoke(new Action(() =>
-                    {
-                        HideProgress();
-                        MessageBox.Show($"Failed to load register definitions: {ex.Message}", "Initialization Error",
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }));
-                }
-                else
-                {
-                    HideProgress();
-                    MessageBox.Show($"Failed to load register definitions: {ex.Message}", "Initialization Error",
-                        MessageBoxButtons.OK, MessageBoxIcon.Error);
-                }
+                HideProgress();
+                MessageBox.Show($"Failed to load register definitions: {ex.Message}",
+                    "Initialization Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -139,6 +94,9 @@ namespace PMICDumpParser
 
         #region UI Event Handlers
 
+        /// <summary>
+        /// Handles opening a PMIC dump file
+        /// </summary>
         private async void OnOpenDump(object sender, EventArgs e)
         {
             using (var dialog = new OpenFileDialog
@@ -155,6 +113,9 @@ namespace PMICDumpParser
             }
         }
 
+        /// <summary>
+        /// Handles search text changes
+        /// </summary>
         private void OnSearchTextChanged(object sender, EventArgs e)
         {
             if (_currentDump != null)
@@ -164,6 +125,9 @@ namespace PMICDumpParser
             }
         }
 
+        /// <summary>
+        /// Handles search box focus enter
+        /// </summary>
         private void OnSearchEnter(object sender, EventArgs e)
         {
             if (_searchBox.Text == "Search...")
@@ -173,6 +137,9 @@ namespace PMICDumpParser
             }
         }
 
+        /// <summary>
+        /// Handles search box focus leave
+        /// </summary>
         private void OnSearchLeave(object sender, EventArgs e)
         {
             if (string.IsNullOrWhiteSpace(_searchBox.Text))
@@ -182,18 +149,27 @@ namespace PMICDumpParser
             }
         }
 
+        /// <summary>
+        /// Toggles changed-only filter
+        /// </summary>
         private void OnToggleChangedFilter(object sender, EventArgs e)
         {
             _detailedListView.ShowChangedOnly = _btnChangedOnly.Checked;
             _detailedListView.ApplyFilters();
         }
 
+        /// <summary>
+        /// Toggles protected-only filter
+        /// </summary>
         private void OnToggleProtectedFilter(object sender, EventArgs e)
         {
             _detailedListView.ShowProtectedOnly = _btnProtectedOnly.Checked;
             _detailedListView.ApplyFilters();
         }
 
+        /// <summary>
+        /// Resets all filters to default state
+        /// </summary>
         private void OnResetFilter(object sender, EventArgs e)
         {
             _btnChangedOnly.Checked = false;
@@ -210,6 +186,9 @@ namespace PMICDumpParser
             }
         }
 
+        /// <summary>
+        /// Reloads register definitions from JSON file
+        /// </summary>
         private async void OnReloadDefinitions(object sender, EventArgs e)
         {
             try
@@ -236,6 +215,9 @@ namespace PMICDumpParser
             }
         }
 
+        /// <summary>
+        /// Exports current dump data to CSV format
+        /// </summary>
         private void OnExportCsv(object sender, EventArgs e)
         {
             if (_currentDump == null)
@@ -264,6 +246,9 @@ namespace PMICDumpParser
             }
         }
 
+        /// <summary>
+        /// Generates and saves a detailed text report
+        /// </summary>
         private async void OnSaveReport(object sender, EventArgs e)
         {
             if (_currentDump == null)
@@ -297,76 +282,155 @@ namespace PMICDumpParser
             }
         }
 
+        /// <summary>
+        /// Saves edited dump to file (overwrite or new file)
+        /// </summary>
+        private void OnSaveEditedDump(object sender, EventArgs e)
+        {
+            if (_currentDump == null)
+            {
+                MessageBox.Show("No dump loaded", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                return;
+            }
+
+            // Save any pending edits in the editor tab
+            if (_registerEditorTab != null && _registerEditorTab.HasPendingEdits)
+            {
+                if (MessageBox.Show("You have unsaved edits in the editor tab. Save them now?",
+                    "Save Pending Edits", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                {
+                    _registerEditorTab.SaveEdits();
+                }
+                else
+                {
+                    _registerEditorTab.RevertAllEdits();
+                }
+            }
+
+            using (var dialog = new SaveEditsDialog(_currentDump.FilePath))
+            {
+                if (dialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        // Save the dump
+                        System.IO.File.WriteAllBytes(dialog.SavePath, _currentDump.RawData);
+
+                        // If saved as new file, reload it
+                        if (dialog.SaveAsNewFile)
+                        {
+                            _ = LoadDumpFileAsync(dialog.SavePath);
+                        }
+                        else
+                        {
+                            // Update current dump file path and refresh views
+                            _currentDump.FilePath = dialog.SavePath;
+                            _currentDump.LoadTime = DateTime.Now;
+                            UpdateAllViews();
+                            UpdateStatusBar();
+                        }
+
+                        UpdateStatus($"Dump saved to: {Path.GetFileName(dialog.SavePath)}");
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Error saving dump: {ex.Message}", "Error",
+                            MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+
+        /// <summary>
+        /// Saves all pending edits from editor tab
+        /// </summary>
+        private void OnSaveAllEdits(object sender, EventArgs e)
+        {
+            if (_registerEditorTab != null && _registerEditorTab.HasPendingEdits)
+            {
+                _registerEditorTab.SaveEdits();
+                UpdateStatus("All edits saved");
+            }
+            else
+            {
+                MessageBox.Show("No pending edits to save.", "Information",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        /// <summary>
+        /// Reverts all pending edits from editor tab
+        /// </summary>
+        private void OnRevertAllEdits(object sender, EventArgs e)
+        {
+            if (_registerEditorTab != null && _registerEditorTab.HasPendingEdits)
+            {
+                _registerEditorTab.RevertAllEdits();
+                UpdateStatus("All edits reverted");
+            }
+            else
+            {
+                MessageBox.Show("No pending edits to revert.", "Information",
+                    MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+        }
+
+        /// <summary>
+        /// Resets all registers to their default values
+        /// </summary>
+        private void OnResetAllToDefault(object sender, EventArgs e)
+        {
+            if (_currentDump == null)
+                return;
+
+            if (MessageBox.Show("Reset all registers to their default values?", "Confirm Reset",
+                MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+            {
+                RegisterEditService.ResetAllChanges(_currentDump);
+                UpdateAllViews();
+                UpdateStatusBar();
+                UpdateStatus("All registers reset to default values");
+            }
+        }
+
+        /// <summary>
+        /// Shows user guide information
+        /// </summary>
         private void OnUserGuide(object sender, EventArgs e)
         {
-            MessageBox.Show("PMIC Dump Parser User Guide\n\n1. Open a PMIC dump file (.bin)\n2. View registers in different tabs\n3. Double-click any register for detailed view\n4. Use filters and search to find specific registers\n5. Export reports as needed", "User Guide");
+            MessageBox.Show(
+                "PMIC Dump Parser User Guide\n\n" +
+                "1. Open a PMIC dump file (.bin)\n" +
+                "2. View registers in different tabs\n" +
+                "3. Double-click any register for detailed view\n" +
+                "4. Use filters and search to find specific registers\n" +
+                "5. Export reports as needed\n\n" +
+                "Editor Tab:\n" +
+                "- Edit register values using field editors or direct value input\n" +
+                "- Apply changes and save to new or existing dump files",
+                "User Guide");
         }
 
+        /// <summary>
+        /// Shows about dialog with application information
+        /// </summary>
         private void OnAbout(object sender, EventArgs e)
         {
-            MessageBox.Show("PMIC Dump Parser v1.0\n\nA tool for analyzing PMIC register dumps\nSupports RTQ5132 and compatible PMICs\n\n© 2024 PMIC Tools", "About");
+            MessageBox.Show(
+                "PMIC Dump Parser v1.0\n\n" +
+                "A tool for analyzing PMIC register dumps\n" +
+                "Supports RTQ5132 and compatible PMICs\n\n" +
+                "Now with Register Editor!\n\n" +
+                "© 2024 PMIC Tools",
+                "About");
         }
 
+        /// <summary>
+        /// Handles column click for sorting (handled by RegisterListView)
+        /// </summary>
         private void OnColumnClick(object sender, ColumnClickEventArgs e)
         {
             // Sorting is handled by the custom RegisterListView control
-        }
-
-        private void OnCategorySelected(object sender, TreeViewEventArgs e)
-        {
-            if (e.Node.Tag is ParsedRegister reg)
-            {
-                UpdateDetailPanel(reg);
-                if (_categoryListViews.TryGetValue("Category", out var listView))
-                {
-                    foreach (ListViewItem item in listView.Items)
-                    {
-                        if (item.Tag == reg)
-                        {
-                            item.Selected = true;
-                            item.EnsureVisible();
-                            break;
-                        }
-                    }
-                }
-            }
-            else if (e.Node.Tag is string category && _categoryRegisters.TryGetValue(category, out var registers))
-            {
-                if (_categoryListViews.TryGetValue("Category", out var listView))
-                {
-                    listView.BeginUpdate();
-                    listView.Items.Clear();
-
-                    foreach (var categoryReg in registers.OrderBy(r => r.Address))
-                    {
-                        var item = new ListViewItem(categoryReg.AddrHex);
-                        item.SubItems.Add(categoryReg.Name);
-                        item.SubItems.Add(categoryReg.ValHex);
-                        item.SubItems.Add(categoryReg.DefaultHex);
-                        item.SubItems.Add(categoryReg.IsChanged ? "CHANGED" : "DEFAULT");
-                        item.SubItems.Add(categoryReg.DecodedValue);
-                        item.Tag = categoryReg;
-
-                        if (categoryReg.IsChanged)
-                            item.BackColor = _changedColor;
-                        else if (categoryReg.Definition.Protected == true)
-                            item.BackColor = _protectedColor;
-
-                        listView.Items.Add(item);
-                    }
-
-                    listView.EndUpdate();
-                    AutoSizeCategoryListViewColumns(listView);
-                }
-            }
-        }
-
-        private void OnCategoryNodeDoubleClick(TreeNode node)
-        {
-            if (node.Tag is ParsedRegister reg)
-            {
-                ShowRegisterDetails(reg);
-            }
         }
 
         #endregion
@@ -384,74 +448,34 @@ namespace PMICDumpParser
 
             try
             {
-                // Show progress on UI thread
-                if (InvokeRequired)
-                {
-                    Invoke(new Action(() => ShowProgress("Loading dump file...", 0)));
-                }
-                else
-                {
-                    ShowProgress("Loading dump file...", 0);
-                }
-
+                ShowProgress("Loading dump file...", 0);
                 _currentDump = await DumpParserService.ParseAsync(filePath).ConfigureAwait(false);
 
-                // Update UI on the UI thread
-                if (InvokeRequired)
-                {
-                    Invoke(new Action(() =>
-                    {
-                        UpdateAllViews();
-                        UpdateStatusBar();
-                        UpdateStatus($"Loaded: {Path.GetFileName(filePath)}");
-                        HideProgress();
-                    }));
-                }
-                else
+                this.InvokeIfRequired(() =>
                 {
                     UpdateAllViews();
                     UpdateStatusBar();
                     UpdateStatus($"Loaded: {Path.GetFileName(filePath)}");
                     HideProgress();
-                }
+                });
             }
             catch (OperationCanceledException)
             {
-                // Hide progress on UI thread
-                if (InvokeRequired)
-                {
-                    Invoke(new Action(() =>
-                    {
-                        HideProgress();
-                        UpdateStatus("Load cancelled");
-                    }));
-                }
-                else
+                this.InvokeIfRequired(() =>
                 {
                     HideProgress();
                     UpdateStatus("Load cancelled");
-                }
+                });
             }
             catch (Exception ex)
             {
-                // Handle error on UI thread
-                if (InvokeRequired)
-                {
-                    Invoke(new Action(() =>
-                    {
-                        HideProgress();
-                        MessageBox.Show($"Error loading dump: {ex.Message}", "Error",
-                            MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        UpdateStatus("Error loading file");
-                    }));
-                }
-                else
+                this.InvokeIfRequired(() =>
                 {
                     HideProgress();
                     MessageBox.Show($"Error loading dump: {ex.Message}", "Error",
                         MessageBoxButtons.OK, MessageBoxIcon.Error);
                     UpdateStatus("Error loading file");
-                }
+                });
             }
         }
 
@@ -461,9 +485,20 @@ namespace PMICDumpParser
         private void UpdateAllViews()
         {
             if (_currentDump == null) return;
+
             UpdateDetailedListView();
-            UpdateCategoryTree();
             UpdateSummaryGrid();
+            UpdateStatistics();
+            UpdateStatusBar();
+
+            // Update editor tab
+            if (_registerEditorTab != null)
+            {
+                _registerEditorTab.LoadDump(_currentDump);
+            }
+
+            // Force UI refresh
+            this.Refresh();
         }
 
         /// <summary>
@@ -472,65 +507,7 @@ namespace PMICDumpParser
         private void UpdateDetailedListView()
         {
             if (_currentDump == null) return;
-
             _detailedListView.LoadRegisters(_currentDump.Registers.Values);
-        }
-
-        /// <summary>
-        /// Updates the category tree view with current dump data
-        /// </summary>
-        private void UpdateCategoryTree()
-        {
-            if (_currentDump == null) return;
-
-            _categoryTreeView.BeginUpdate();
-            _categoryTreeView.Nodes.Clear();
-            _categoryRegisters.Clear();
-
-            try
-            {
-                var categories = _currentDump.Registers.Values
-                    .GroupBy(r => r.Category)
-                    .OrderBy(g => g.Key);
-
-                foreach (var category in categories)
-                {
-                    var categoryNode = new TreeNode($"{category.Key} ({category.Count()})")
-                    {
-                        Tag = category.Key
-                    };
-
-                    foreach (var reg in category.OrderBy(r => r.Address))
-                    {
-                        string status = reg.IsChanged ? " [CHANGED]" : "";
-                        string protectedFlag = reg.Definition.Protected == true ? " [PROTECTED]" : "";
-
-                        var regNode = new TreeNode($"{reg.AddrHex}: {reg.Name}{status}{protectedFlag}")
-                        {
-                            Tag = reg
-                        };
-
-                        if (reg.IsChanged && reg.Definition.Protected == false)
-                            regNode.ForeColor = Color.FromArgb(0, 102, 204);
-                        else if (reg.Definition.Protected == true)
-                        {
-                            regNode.ForeColor = Color.FromArgb(153, 102, 0);
-
-                            if (reg.IsChanged == true)
-                                regNode.ForeColor = IsCriticalChange(reg) ? Color.FromArgb(224, 63, 63) : Color.FromArgb(98, 182, 245);
-                        }
-
-                        categoryNode.Nodes.Add(regNode);
-                    }
-
-                    _categoryTreeView.Nodes.Add(categoryNode);
-                    _categoryRegisters[category.Key] = category.ToList();
-                }
-            }
-            finally
-            {
-                _categoryTreeView.EndUpdate();
-            }
         }
 
         /// <summary>
@@ -547,8 +524,6 @@ namespace PMICDumpParser
                     UpdateGridCellColor(cell, address);
                 }
             }
-
-            UpdateStatistics();
         }
 
         /// <summary>
@@ -561,7 +536,7 @@ namespace PMICDumpParser
             var total = _currentDump.Registers.Count;
             var changed = _currentDump.Changed.Count;
             var protectedCount = _currentDump.Protected.Count;
-            var critical = _currentDump.Registers.Values.Count(IsCriticalChange);
+            var critical = _currentDump.Registers.Values.Count(RegisterAnalyzer.IsCriticalChange);
             var changedPercent = total > 0 ? (changed * 100.0 / total) : 0;
 
             if (_statTotal != null) _statTotal.Text = total.ToString();
@@ -603,36 +578,6 @@ namespace PMICDumpParser
             File.WriteAllText(filePath, csv.ToString());
         }
 
-        /// <summary>
-        /// Determines if a register change is critical (>23% change for voltage/current registers)
-        /// </summary>
-        /// <param name="reg">The register to check</param>
-        /// <returns>True if the change is critical, false otherwise</returns>
-        private bool IsCriticalChange(ParsedRegister reg)
-        {
-            var name = reg.Name.ToUpper();
-            bool isVoltageReg = name.Contains("VOLT") || name.Contains("SWA_VOLT") ||
-                                name.Contains("SWB_VOLT") || name.Contains("SWC_VOLT");
-            bool isCurrentReg = name.Contains("CURR") || name.Contains("SWA_CURR") ||
-                                name.Contains("SWB_CURR") || name.Contains("SWC_CURR");
-
-            if (!isVoltageReg && !isCurrentReg)
-                return false;
-
-            if (!reg.IsChanged)
-                return false;
-
-            double nominalValue = reg.DefaultValue;
-            if (nominalValue <= 0)
-                return false;
-
-            double currentValue = reg.RawValue;
-            double absoluteChange = Math.Abs(currentValue - nominalValue);
-            double changePercent = (absoluteChange / MAX_VOLTAGE_RANGE) * 100.0;
-
-            return changePercent > CRITICAL_THRESHOLD_PERCENT;
-        }
-
         #endregion
 
         #region UI Helper Methods
@@ -642,15 +587,12 @@ namespace PMICDumpParser
         /// </summary>
         private void ShowProgress(string message, int value = 0)
         {
-            if (InvokeRequired)
+            this.InvokeIfRequired(() =>
             {
-                Invoke(new Action(() => ShowProgress(message, value)));
-                return;
-            }
-
-            _progressBar.Visible = true;
-            _progressBar.Value = value;
-            UpdateStatus(message);
+                _progressBar.Visible = true;
+                _progressBar.Value = value;
+                UpdateStatus(message);
+            });
         }
 
         /// <summary>
@@ -658,13 +600,10 @@ namespace PMICDumpParser
         /// </summary>
         private void HideProgress()
         {
-            if (InvokeRequired)
+            this.InvokeIfRequired(() =>
             {
-                Invoke(new Action(HideProgress));
-                return;
-            }
-
-            _progressBar.Visible = false;
+                _progressBar.Visible = false;
+            });
         }
 
         /// <summary>
@@ -672,14 +611,10 @@ namespace PMICDumpParser
         /// </summary>
         private void UpdateStatus(string message)
         {
-            if (InvokeRequired)
-            {
-                BeginInvoke(new Action(() => _statusLabel.Text = message));
-            }
-            else
+            this.BeginInvokeIfRequired(() =>
             {
                 _statusLabel.Text = message;
-            }
+            });
         }
 
         /// <summary>
@@ -749,27 +684,11 @@ namespace PMICDumpParser
         {
             if (_currentDump?.Registers.TryGetValue(address, out var reg) == true)
             {
-                if (reg.Category == "Reserved" && reg.Name.StartsWith("RESERVED_"))
-                {
-                    cell.BackColor = _defaultGridColor;
-                }
-                else if (reg.IsChanged)
-                {
-                    bool isCritical = IsCriticalChange(reg);
-                    cell.BackColor = isCritical ? _criticalColor : _changedColor;
-                }
-                else if (reg.Definition.Protected == true)
-                {
-                    cell.BackColor = _protectedColor;
-                }
-                else
-                {
-                    cell.BackColor = _unchangedColor;
-                }
+                cell.BackColor = RegisterAnalyzer.GetStatusColor(reg);
             }
             else
             {
-                cell.BackColor = _defaultGridColor;
+                cell.BackColor = AppColors.DefaultGrid;
             }
         }
 
@@ -793,26 +712,6 @@ namespace PMICDumpParser
             _detailedListView.Columns[_detailedListView.Columns.Count - 1].Width = lastColumnWidth;
         }
 
-        /// <summary>
-        /// Auto-sizes category list view columns for optimal display
-        /// </summary>
-        private void AutoSizeCategoryListViewColumns(ListView listView)
-        {
-            if (listView.Columns.Count == 0 || listView.ClientSize.Width <= 0)
-                return;
-
-            int totalWidth = listView.ClientSize.Width;
-            int fixedColumnsWidth = 0;
-
-            for (int i = 0; i < listView.Columns.Count - 1; i++)
-            {
-                fixedColumnsWidth += listView.Columns[i].Width;
-            }
-
-            int lastColumnWidth = Math.Max(100, totalWidth - fixedColumnsWidth - 5);
-            listView.Columns[listView.Columns.Count - 1].Width = lastColumnWidth;
-        }
-
         #endregion
 
         #region UI Initialization
@@ -822,7 +721,7 @@ namespace PMICDumpParser
         /// </summary>
         private void InitializeComponent()
         {
-            this.Text = "PMIC Dump Parser v1.0";
+            this.Text = "PMIC Dump Parser v1.0 with Editor";
             this.Size = new Size(Screen.PrimaryScreen.WorkingArea.Width * 3 / 4,
                                  Screen.PrimaryScreen.WorkingArea.Height * 3 / 4);
             this.StartPosition = FormStartPosition.CenterScreen;
@@ -868,9 +767,9 @@ namespace PMICDumpParser
             var detailedTab = CreateDetailedTab();
             _tabControl.TabPages.Add(detailedTab);
 
-            // Category tab
-            var categoryTab = CreateCategoryTab();
-            _tabControl.TabPages.Add(categoryTab);
+            // Editor tab
+            var editorTab = CreateEditorTab();
+            _tabControl.TabPages.Add(editorTab);
 
             mainContainer.Controls.Add(_tabControl, 0, 2);
 
@@ -897,6 +796,7 @@ namespace PMICDumpParser
             fileMenu.DropDownItems.Add(new ToolStripSeparator());
             fileMenu.DropDownItems.Add("&Save Report...", null, OnSaveReport);
             fileMenu.DropDownItems.Add("&Export to CSV...", null, OnExportCsv);
+            fileMenu.DropDownItems.Add("Save &Edited Dump...", null, OnSaveEditedDump);
             fileMenu.DropDownItems.Add(new ToolStripSeparator());
             fileMenu.DropDownItems.Add("E&xit", null, (s, e) => Close());
             menuStrip.Items.Add(fileMenu);
@@ -904,8 +804,15 @@ namespace PMICDumpParser
             var viewMenu = new ToolStripMenuItem("&View");
             viewMenu.DropDownItems.Add("&Summary", null, (s, e) => _tabControl.SelectedIndex = 0);
             viewMenu.DropDownItems.Add("&Detailed", null, (s, e) => _tabControl.SelectedIndex = 1);
-            viewMenu.DropDownItems.Add("By &Category", null, (s, e) => _tabControl.SelectedIndex = 2);
+            viewMenu.DropDownItems.Add("&Editor", null, (s, e) => _tabControl.SelectedIndex = 2);
             menuStrip.Items.Add(viewMenu);
+
+            var editMenu = new ToolStripMenuItem("&Edit");
+            editMenu.DropDownItems.Add("&Save All Edits", null, OnSaveAllEdits);
+            editMenu.DropDownItems.Add("&Revert All Edits", null, OnRevertAllEdits);
+            editMenu.DropDownItems.Add(new ToolStripSeparator());
+            editMenu.DropDownItems.Add("&Reset All to Default", null, OnResetAllToDefault);
+            menuStrip.Items.Add(editMenu);
 
             var toolsMenu = new ToolStripMenuItem("&Tools");
             toolsMenu.DropDownItems.Add("&Reload Definitions", null, OnReloadDefinitions);
@@ -942,8 +849,14 @@ namespace PMICDumpParser
                 ToolTipText = "Save analysis report",
                 DisplayStyle = ToolStripItemDisplayStyle.ImageAndText
             };
+            var btnSaveEdits = new ToolStripButton("Save Edits", null, OnSaveEditedDump)
+            {
+                ToolTipText = "Save edited dump file",
+                DisplayStyle = ToolStripItemDisplayStyle.ImageAndText
+            };
             toolStrip.Items.Add(btnOpen);
             toolStrip.Items.Add(btnSave);
+            toolStrip.Items.Add(btnSaveEdits);
             toolStrip.Items.Add(new ToolStripSeparator());
 
             _btnChangedOnly = new ToolStripButton("Changed Only", null, OnToggleChangedFilter)
@@ -1017,7 +930,7 @@ namespace PMICDumpParser
                 RowCount = 17,
                 CellBorderStyle = TableLayoutPanelCellBorderStyle.Single,
                 Padding = new Padding(1),
-                BackColor = _gridBorderColor
+                BackColor = AppColors.GridBorder
             };
 
             for (int i = 0; i < 17; i++)
@@ -1064,7 +977,7 @@ namespace PMICDumpParser
                     var cellPanel = new Panel
                     {
                         Dock = DockStyle.Fill,
-                        BackColor = _defaultGridColor,
+                        BackColor = AppColors.DefaultGrid,
                         BorderStyle = BorderStyle.FixedSingle,
                         Margin = new Padding(1),
                         Tag = address,
@@ -1082,70 +995,22 @@ namespace PMICDumpParser
 
                     cellPanel.Controls.Add(addressLabel);
 
-                    cellPanel.Click += (s, e) =>
-                    {
-                        if (_currentDump?.Registers.TryGetValue(address, out var reg) == true)
-                        {
-                            ShowRegisterDetails(reg);
-                        }
-                        else
-                        {
-                            var reservedReg = new ParsedRegister
-                            {
-                                Address = address,
-                                RawValue = 0,
-                                DefaultValue = 0,
-                                Name = $"RESERVED_{address:X2}",
-                                FullName = $"Reserved 0x{address:X2}",
-                                Category = "Reserved",
-                                DecodedValue = "Reserved",
-                                Description = $"Reserved register 0x{address:X2}",
-                                Definition = RegisterLoaderService.GetDefinition(address)
-                            };
-                            ShowRegisterDetails(reservedReg);
-                        }
-                    };
+                    // Click event for showing register details
+                    cellPanel.Click += (s, e) => ShowRegisterCellDetails(address);
+                    addressLabel.Click += (s, e) => ShowRegisterCellDetails(address);
 
-                    addressLabel.Click += (s, e) =>
-                    {
-                        if (_currentDump?.Registers.TryGetValue(address, out var reg) == true)
-                        {
-                            ShowRegisterDetails(reg);
-                        }
-                        else
-                        {
-                            var reservedReg = new ParsedRegister
-                            {
-                                Address = address,
-                                RawValue = 0,
-                                DefaultValue = 0,
-                                Name = $"RESERVED_{address:X2}",
-                                FullName = $"Reserved 0x{address:X2}",
-                                Category = "Reserved",
-                                DecodedValue = "Reserved",
-                                Description = $"Reserved register 0x{address:X2}",
-                                Definition = RegisterLoaderService.GetDefinition(address)
-                            };
-                            ShowRegisterDetails(reservedReg);
-                        }
-                    };
-
+                    // Hover effects
                     cellPanel.MouseEnter += (s, e) =>
                     {
-                        if (cellPanel.BackColor != _selectedGridColor)
+                        if (cellPanel.BackColor != AppColors.Selected)
                         {
-                            Color originalColor = cellPanel.BackColor;
-                            cellPanel.BackColor = Color.FromArgb(
-                                Math.Max(originalColor.R - 20, 0),
-                                Math.Max(originalColor.G - 20, 0),
-                                Math.Max(originalColor.B - 20, 0)
-                            );
+                            cellPanel.BackColor = AppColors.GetHoverColor(cellPanel.BackColor);
                         }
                     };
 
                     cellPanel.MouseLeave += (s, e) =>
                     {
-                        if (cellPanel.BackColor != _selectedGridColor)
+                        if (cellPanel.BackColor != AppColors.Selected)
                         {
                             UpdateGridCellColor(cellPanel, address);
                         }
@@ -1204,6 +1069,33 @@ namespace PMICDumpParser
         }
 
         /// <summary>
+        /// Shows register details when clicking on a grid cell
+        /// </summary>
+        private void ShowRegisterCellDetails(byte address)
+        {
+            if (_currentDump?.Registers.TryGetValue(address, out var reg) == true)
+            {
+                ShowRegisterDetails(reg);
+            }
+            else
+            {
+                var reservedReg = new ParsedRegister
+                {
+                    Address = address,
+                    RawValue = 0,
+                    DefaultValue = 0,
+                    Name = $"RESERVED_{address:X2}",
+                    FullName = $"Reserved 0x{address:X2}",
+                    Category = "Reserved",
+                    DecodedValue = "Reserved",
+                    Description = $"Reserved register 0x{address:X2}",
+                    Definition = RegisterLoaderService.GetDefinition(address)
+                };
+                ShowRegisterDetails(reservedReg);
+            }
+        }
+
+        /// <summary>
         /// Creates the statistics column for the summary tab
         /// </summary>
         private Control CreateStatisticsColumn()
@@ -1248,6 +1140,33 @@ namespace PMICDumpParser
         }
 
         /// <summary>
+        /// Adds a statistic row to the statistics table
+        /// </summary>
+        private void AddStatRow(TableLayoutPanel table, int row, string label, string value, out Label valueLabel)
+        {
+            var lbl = new Label
+            {
+                Text = label,
+                TextAlign = ContentAlignment.MiddleLeft,
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 9),
+                ForeColor = AppColors.LabelText
+            };
+
+            valueLabel = new Label
+            {
+                Text = value,
+                TextAlign = ContentAlignment.MiddleRight,
+                Dock = DockStyle.Fill,
+                Font = new Font("Segoe UI", 9, FontStyle.Bold),
+                ForeColor = AppColors.ValueText
+            };
+
+            table.Controls.Add(lbl, 0, row);
+            table.Controls.Add(valueLabel, 1, row);
+        }
+
+        /// <summary>
         /// Creates the quick actions column for the summary tab
         /// </summary>
         private Control CreateQuickActionsColumn()
@@ -1278,77 +1197,41 @@ namespace PMICDumpParser
             };
 
             // Button 1: Export All
-            var btnExportAll = new Button
-            {
-                Text = "Export All to CSV",
-                Height = 32,
-                Width = actionsPanel.ClientSize.Width - 20,
-                Margin = new Padding(0, 0, 0, 8),
-                BackColor = Color.FromArgb(70, 130, 180),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9)
-            };
-            btnExportAll.FlatAppearance.BorderSize = 0;
-            btnExportAll.Click += OnExportCsv;
+            var btnExportAll = UtilityExtensions.CreateStyledButton(
+                "Export All to CSV", AppColors.Info, OnExportCsv);
+            btnExportAll.Width = actionsPanel.ClientSize.Width - 20;
+            btnExportAll.Margin = new Padding(0, 0, 0, 8);
             actionsPanel.Controls.Add(btnExportAll);
 
             // Button 2: Show Changed
-            var btnShowChanged = new Button
-            {
-                Text = "Show Changed Only",
-                Height = 32,
-                Width = actionsPanel.ClientSize.Width - 20,
-                Margin = new Padding(0, 0, 0, 8),
-                BackColor = Color.FromArgb(100, 150, 200),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9)
-            };
-            btnShowChanged.FlatAppearance.BorderSize = 0;
-            btnShowChanged.Click += (s, e) =>
-            {
-                _btnChangedOnly.Checked = true;
-                OnToggleChangedFilter(s, e);
-                _tabControl.SelectedIndex = 1;
-            };
+            var btnShowChanged = UtilityExtensions.CreateStyledButton(
+                "Show Changed Only", Color.FromArgb(100, 150, 200), (s, e) =>
+                {
+                    _btnChangedOnly.Checked = true;
+                    OnToggleChangedFilter(s, e);
+                    _tabControl.SelectedIndex = 1;
+                });
+            btnShowChanged.Width = actionsPanel.ClientSize.Width - 20;
+            btnShowChanged.Margin = new Padding(0, 0, 0, 8);
             actionsPanel.Controls.Add(btnShowChanged);
 
             // Button 3: Show Protected
-            var btnShowProtected = new Button
-            {
-                Text = "Show Protected Only",
-                Height = 32,
-                Width = actionsPanel.ClientSize.Width - 20,
-                Margin = new Padding(0, 0, 0, 8),
-                BackColor = Color.FromArgb(255, 193, 7),
-                ForeColor = Color.Black,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9)
-            };
-            btnShowProtected.FlatAppearance.BorderSize = 0;
-            btnShowProtected.Click += (s, e) =>
-            {
-                _btnProtectedOnly.Checked = true;
-                OnToggleProtectedFilter(s, e);
-                _tabControl.SelectedIndex = 1;
-            };
+            var btnShowProtected = UtilityExtensions.CreateStyledButton(
+                "Show Protected Only", AppColors.Warning, (s, e) =>
+                {
+                    _btnProtectedOnly.Checked = true;
+                    OnToggleProtectedFilter(s, e);
+                    _tabControl.SelectedIndex = 1;
+                });
+            btnShowProtected.ForeColor = Color.Black;
+            btnShowProtected.Width = actionsPanel.ClientSize.Width - 20;
+            btnShowProtected.Margin = new Padding(0, 0, 0, 8);
             actionsPanel.Controls.Add(btnShowProtected);
 
             // Button 4: Reset All
-            var btnResetAll = new Button
-            {
-                Text = "Reset All Filters",
-                Height = 32,
-                Width = actionsPanel.ClientSize.Width - 20,
-                Margin = new Padding(0, 0, 0, 0),
-                BackColor = Color.FromArgb(108, 117, 125),
-                ForeColor = Color.White,
-                FlatStyle = FlatStyle.Flat,
-                Font = new Font("Segoe UI", 9)
-            };
-            btnResetAll.FlatAppearance.BorderSize = 0;
-            btnResetAll.Click += OnResetFilter;
+            var btnResetAll = UtilityExtensions.CreateStyledButton(
+                "Reset All Filters", Color.FromArgb(108, 117, 125), OnResetFilter);
+            btnResetAll.Width = actionsPanel.ClientSize.Width - 20;
             actionsPanel.Controls.Add(btnResetAll);
 
             actionsPanel.Resize += (s, e) =>
@@ -1398,44 +1281,17 @@ namespace PMICDumpParser
                 Padding = new Padding(0, 5, 0, 5)
             };
 
-            AddCompactLegendItem(legendPanel, _unchangedColor, "Unchanged");
-            AddCompactLegendItem(legendPanel, _changedColor, "Changed");
-            AddCompactLegendItem(legendPanel, _protectedColor, "Protected");
-            AddCompactLegendItem(legendPanel, _criticalColor, "Critical (>20%)");
-            AddCompactLegendItem(legendPanel, _defaultGridColor, "Reserved");
-            AddCompactLegendItem(legendPanel, _selectedGridColor, "Selected");
+            AddCompactLegendItem(legendPanel, AppColors.Unchanged, "Unchanged");
+            AddCompactLegendItem(legendPanel, AppColors.Changed, "Changed");
+            AddCompactLegendItem(legendPanel, AppColors.Protected, "Protected");
+            AddCompactLegendItem(legendPanel, AppColors.Critical, "Critical (>20%)");
+            AddCompactLegendItem(legendPanel, AppColors.DefaultGrid, "Reserved");
+            AddCompactLegendItem(legendPanel, AppColors.Selected, "Selected");
 
             legendGroup.Controls.Add(legendPanel);
             container.Controls.Add(legendGroup);
 
             return container;
-        }
-
-        /// <summary>
-        /// Adds a statistic row to the statistics table
-        /// </summary>
-        private void AddStatRow(TableLayoutPanel table, int row, string label, string value, out Label valueLabel)
-        {
-            var lbl = new Label
-            {
-                Text = label,
-                TextAlign = ContentAlignment.MiddleLeft,
-                Dock = DockStyle.Fill,
-                Font = new Font("Segoe UI", 9),
-                ForeColor = Color.FromArgb(90, 90, 90)
-            };
-
-            valueLabel = new Label
-            {
-                Text = value,
-                TextAlign = ContentAlignment.MiddleRight,
-                Dock = DockStyle.Fill,
-                Font = new Font("Segoe UI", 9, FontStyle.Bold),
-                ForeColor = Color.FromArgb(50, 50, 50)
-            };
-
-            table.Controls.Add(lbl, 0, row);
-            table.Controls.Add(valueLabel, 1, row);
         }
 
         /// <summary>
@@ -1505,17 +1361,6 @@ namespace PMICDumpParser
                 BackColor = Color.White
             };
 
-            // Add columns with percentage widths
-            _detailedListView.Columns.Add("Address", 80, HorizontalAlignment.Center);
-            _detailedListView.Columns.Add("Name", 120);
-            _detailedListView.Columns.Add("Full Name", 200);
-            _detailedListView.Columns.Add("Value", 80, HorizontalAlignment.Center);
-            _detailedListView.Columns.Add("Default", 80, HorizontalAlignment.Center);
-            _detailedListView.Columns.Add("Status", 100, HorizontalAlignment.Center);
-            _detailedListView.Columns.Add("Protected", 80, HorizontalAlignment.Center);
-            _detailedListView.Columns.Add("Category", 120);
-            _detailedListView.Columns.Add("Decoded Value", 300);
-
             _detailedListView.RegisterSelected += OnRegisterSelected;
             _detailedListView.RegisterDoubleClicked += OnRegisterDoubleClick;
             _detailedListView.ColumnClick += OnColumnClick;
@@ -1541,8 +1386,8 @@ namespace PMICDumpParser
                 HelpVisible = false,
                 BackColor = Color.White,
                 ViewBackColor = Color.White,
-                LineColor = Color.FromArgb(240, 240, 240),
-                CategoryForeColor = Color.FromArgb(70, 130, 180),
+                LineColor = AppColors.GridBorder,
+                CategoryForeColor = AppColors.Selected,
                 Font = new Font("Segoe UI", 9)
             };
             detailPanel.Controls.Add(_detailPropertyGrid);
@@ -1555,83 +1400,27 @@ namespace PMICDumpParser
         }
 
         /// <summary>
-        /// Creates the category tab with tree view and list view
+        /// Creates the editor tab for modifying register values
         /// </summary>
-        private TabPage CreateCategoryTab()
+        private TabPage CreateEditorTab()
         {
-            var tab = new TabPage("By Category");
+            var tab = new TabPage("Editor");
             tab.BackColor = Color.White;
 
-            var splitContainer = new SplitContainer
+            _registerEditorTab = new RegisterEditorTab
             {
-                Dock = DockStyle.Fill,
-                SplitterDistance = 300,
-                SplitterWidth = 2,
-                BackColor = Color.White
+                Dock = DockStyle.Fill
             };
 
-            // Tree View Panel
-            var treePanel = new Panel { Dock = DockStyle.Fill, BackColor = Color.White };
-            _categoryTreeView = new TreeView
+            // Subscribe to edits saved event to update all views
+            _registerEditorTab.EditsSaved += (s, e) =>
             {
-                Dock = DockStyle.Fill,
-                ShowLines = true,
-                ShowPlusMinus = true,
-                ShowRootLines = true,
-                Scrollable = true,
-                Indent = 20,
-                Font = new Font("Segoe UI", 9.5f),
-                BackColor = Color.White,
-                BorderStyle = BorderStyle.FixedSingle
-            };
-            _categoryTreeView.AfterSelect += OnCategorySelected;
-            _categoryTreeView.NodeMouseDoubleClick += (s, e) => OnCategoryNodeDoubleClick(e.Node);
-            treePanel.Controls.Add(_categoryTreeView);
-
-            // List View Panel
-            var listPanel = new Panel { Dock = DockStyle.Fill, BackColor = Color.White };
-            var listView = new ListView
-            {
-                Dock = DockStyle.Fill,
-                View = View.Details,
-                FullRowSelect = true,
-                GridLines = true,
-                HeaderStyle = ColumnHeaderStyle.Clickable,
-                Font = new Font("Segoe UI", 9),
-                BackColor = Color.White
+                UpdateAllViews();
+                UpdateStatusBar();
+                UpdateStatus("Edits saved and applied to dump");
             };
 
-            listView.Columns.Add("Address", 80, HorizontalAlignment.Center);
-            listView.Columns.Add("Name", 120);
-            listView.Columns.Add("Value", 80, HorizontalAlignment.Center);
-            listView.Columns.Add("Default", 80, HorizontalAlignment.Center);
-            listView.Columns.Add("Status", 100, HorizontalAlignment.Center);
-            listView.Columns.Add("Decoded", 250);
-
-            listView.SelectedIndexChanged += (s, e) =>
-            {
-                if (listView.SelectedItems.Count > 0 && listView.SelectedItems[0].Tag is ParsedRegister reg)
-                {
-                    UpdateDetailPanel(reg);
-                }
-            };
-            listView.DoubleClick += (s, e) =>
-            {
-                if (listView.SelectedItems.Count > 0 && listView.SelectedItems[0].Tag is ParsedRegister reg)
-                {
-                    ShowRegisterDetails(reg);
-                }
-            };
-            listView.Resize += (s, e) => AutoSizeCategoryListViewColumns(listView);
-
-            listPanel.Controls.Add(listView);
-
-            splitContainer.Panel1.Controls.Add(treePanel);
-            splitContainer.Panel2.Controls.Add(listView);
-
-            _categoryListViews["Category"] = listView;
-
-            tab.Controls.Add(splitContainer);
+            tab.Controls.Add(_registerEditorTab);
             return tab;
         }
 
